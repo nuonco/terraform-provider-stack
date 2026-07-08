@@ -4,6 +4,8 @@
 // install-stacks Terraform module can consume it directly instead of tfvars.
 package main
 
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name stack
+
 import (
 	"context"
 	"flag"
