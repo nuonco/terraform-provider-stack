@@ -26,6 +26,7 @@ type stackDataSourceModel struct {
 	Secrets             map[string]secretTF `tfsdk:"secrets"`
 
 	GCP *gcpTF `tfsdk:"gcp"`
+	AWS *awsTF `tfsdk:"aws"`
 }
 
 // secretTF mirrors the module's secrets map(object) element.
@@ -58,6 +59,34 @@ type gcpTF struct {
 	CustomRoles     map[string]gcpRoleTF `tfsdk:"custom_roles"`
 }
 
+// awsRoleTF mirrors the module's break_glass_roles / custom_roles element.
+type awsRoleTF struct {
+	Permissions          []string `tfsdk:"permissions"`
+	InlinePolicyDocument string   `tfsdk:"inline_policy_document"`
+	ManagedPolicyARNs    []string `tfsdk:"managed_policy_arns"`
+	Enabled              bool     `tfsdk:"enabled"`
+}
+
+// awsTF carries the AWS-specific install-stack config.
+type awsTF struct {
+	Region                 string   `tfsdk:"region"`
+	ClusterName            string   `tfsdk:"cluster_name"`
+	NuonSupportIAMRoleARNs []string `tfsdk:"nuon_support_iam_role_arns"`
+
+	ProvisionPermissions            []string `tfsdk:"provision_permissions"`
+	ProvisionInlinePolicyDocument   string   `tfsdk:"provision_inline_policy_document"`
+	ProvisionManagedPolicyARNs      []string `tfsdk:"provision_managed_policy_arns"`
+	MaintenancePermissions          []string `tfsdk:"maintenance_permissions"`
+	MaintenanceInlinePolicyDocument string   `tfsdk:"maintenance_inline_policy_document"`
+	MaintenanceManagedPolicyARNs    []string `tfsdk:"maintenance_managed_policy_arns"`
+	DeprovisionPermissions          []string `tfsdk:"deprovision_permissions"`
+	DeprovisionInlinePolicyDocument string   `tfsdk:"deprovision_inline_policy_document"`
+	DeprovisionManagedPolicyARNs    []string `tfsdk:"deprovision_managed_policy_arns"`
+
+	BreakGlassRoles map[string]awsRoleTF `tfsdk:"break_glass_roles"`
+	CustomRoles     map[string]awsRoleTF `tfsdk:"custom_roles"`
+}
+
 // flattenConfig copies the fetched SDK config onto the data source model,
 // preserving the caller-supplied phone_home_id.
 func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
@@ -87,6 +116,41 @@ func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 	if cfg.GCP != nil {
 		data.GCP = flattenGCP(cfg.GCP)
 	}
+	if cfg.AWS != nil {
+		data.AWS = flattenAWS(cfg.AWS)
+	}
+}
+
+func flattenAWS(a *stack.AWSConfig) *awsTF {
+	return &awsTF{
+		Region:                          a.Region,
+		ClusterName:                     a.ClusterName,
+		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIAMRoleARNs),
+		ProvisionPermissions:            orEmptySlice(a.ProvisionPermissions),
+		ProvisionInlinePolicyDocument:   a.ProvisionInlinePolicyDocument,
+		ProvisionManagedPolicyARNs:      orEmptySlice(a.ProvisionManagedPolicyARNs),
+		MaintenancePermissions:          orEmptySlice(a.MaintenancePermissions),
+		MaintenanceInlinePolicyDocument: a.MaintenanceInlinePolicyDocument,
+		MaintenanceManagedPolicyARNs:    orEmptySlice(a.MaintenanceManagedPolicyARNs),
+		DeprovisionPermissions:          orEmptySlice(a.DeprovisionPermissions),
+		DeprovisionInlinePolicyDocument: a.DeprovisionInlinePolicyDocument,
+		DeprovisionManagedPolicyARNs:    orEmptySlice(a.DeprovisionManagedPolicyARNs),
+		BreakGlassRoles:                 flattenAWSRoles(a.BreakGlassRoles),
+		CustomRoles:                     flattenAWSRoles(a.CustomRoles),
+	}
+}
+
+func flattenAWSRoles(in map[string]stack.RoleConfig) map[string]awsRoleTF {
+	out := make(map[string]awsRoleTF, len(in))
+	for name, r := range in {
+		out[name] = awsRoleTF{
+			Permissions:          orEmptySlice(r.Permissions),
+			InlinePolicyDocument: r.InlinePolicyDocument,
+			ManagedPolicyARNs:    orEmptySlice(r.ManagedPolicyARNs),
+			Enabled:              r.Enabled,
+		}
+	}
+	return out
 }
 
 func flattenGCP(g *stack.GCPConfig) *gcpTF {
