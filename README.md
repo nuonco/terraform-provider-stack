@@ -8,7 +8,7 @@ The provider exposes two surfaces:
 
 - **`stack_config` data source** — read-only fetch of a stack's rendered config
   (runner details, permissions, roles, install inputs, secrets) keyed by
-  `phone_home_id`. Intended for use *inside* an install-stacks module (e.g.
+  `phone_home_id`. Intended for use _inside_ an install-stacks module (e.g.
   `nuonco/install-stacks//gcp`) so it reads config from the API rather than
   receiving it as generated tfvars. Provisions nothing.
 - **`stack_phone_home` resource** — reports the result of a run back to the
@@ -67,7 +67,7 @@ file referenced by `TF_CLI_CONFIG_FILE`):
 
 ```hcl
 provider_installation {
-  dev_overrides { "nuonco/stack" = "/Users/you/go/bin" }
+  dev_overrides { "nuonco/stack" = "/Users/<your-home-directory>/go/bin" }
   direct {}
 }
 ```
