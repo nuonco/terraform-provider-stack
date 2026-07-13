@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	stack "github.com/nuonco/terraform-provider-stack/internal/stack"
+	stack "github.com/nuonco/nuon/sdks/stack"
 )
 
 const (

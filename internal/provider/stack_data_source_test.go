@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	stack "github.com/nuonco/terraform-provider-stack/internal/stack"
+	stack "github.com/nuonco/nuon/sdks/stack"
 )
 
 func TestStackDataSourceSchema(t *testing.T) {

@@ -3,7 +3,7 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	stack "github.com/nuonco/terraform-provider-stack/internal/stack"
+	stack "github.com/nuonco/nuon/sdks/stack"
 )
 
 // stackDataSourceModel is the Terraform shape for the stack_config data source. It
