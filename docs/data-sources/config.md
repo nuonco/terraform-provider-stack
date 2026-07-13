@@ -34,6 +34,7 @@ output "install_id" {
 
 - `app_id` (String) Nuon application ID.
 - `auto_generate_secrets` (List of String) Names of secrets the stack should auto-generate.
+- `aws` (Attributes) AWS-specific configuration. Present when cloud is aws. (see [below for nested schema](#nestedatt--aws))
 - `cloud` (String) Target cloud (aws or gcp).
 - `gcp` (Attributes) GCP-specific configuration. Present when cloud is gcp. (see [below for nested schema](#nestedatt--gcp))
 - `install_id` (String) Nuon install ID.
@@ -43,6 +44,49 @@ output "install_id" {
 - `runner_api_url` (String) Runner API URL the runner reports to.
 - `runner_id` (String) Runner ID for this install.
 - `secrets` (Attributes Map, Sensitive) Customer-supplied secrets, keyed by name. (see [below for nested schema](#nestedatt--secrets))
+
+<a id="nestedatt--aws"></a>
+
+### Nested Schema for `aws`
+
+Read-Only:
+
+- `break_glass_roles` (Attributes Map) Break-glass roles, keyed by name. (see [below for nested schema](#nestedatt--aws--break_glass_roles))
+- `cluster_name` (String) Resolved EKS cluster-name tag value.
+- `custom_roles` (Attributes Map) Customer-defined roles, keyed by name. (see [below for nested schema](#nestedatt--aws--custom_roles))
+- `deprovision_inline_policy_document` (String) Deprovision role inline policy document JSON.
+- `deprovision_managed_policy_arns` (List of String) Managed policy ARNs attached to the deprovision role.
+- `deprovision_permissions` (List of String) Deprovision role inline-policy IAM actions.
+- `maintenance_inline_policy_document` (String) Maintenance role inline policy document JSON.
+- `maintenance_managed_policy_arns` (List of String) Managed policy ARNs attached to the maintenance role.
+- `maintenance_permissions` (List of String) Maintenance role inline-policy IAM actions.
+- `nuon_support_iam_role_arns` (List of String) Nuon control-plane IAM role ARNs allowed to assume the operation roles.
+- `provision_inline_policy_document` (String) Provision role inline policy document JSON.
+- `provision_managed_policy_arns` (List of String) Managed policy ARNs attached to the provision role.
+- `provision_permissions` (List of String) Provision role inline-policy IAM actions.
+- `region` (String) AWS region the stack is provisioned into.
+
+<a id="nestedatt--aws--break_glass_roles"></a>
+
+### Nested Schema for `aws.break_glass_roles`
+
+Read-Only:
+
+- `enabled` (Boolean) Whether the role should be created.
+- `inline_policy_document` (String) JSON IAM policy document attached as an inline policy. Takes precedence over permissions.
+- `managed_policy_arns` (List of String) Managed policy ARNs to attach to the role.
+- `permissions` (List of String) IAM action strings granted via an inline policy.
+
+<a id="nestedatt--aws--custom_roles"></a>
+
+### Nested Schema for `aws.custom_roles`
+
+Read-Only:
+
+- `enabled` (Boolean) Whether the role should be created.
+- `inline_policy_document` (String) JSON IAM policy document attached as an inline policy. Takes precedence over permissions.
+- `managed_policy_arns` (List of String) Managed policy ARNs to attach to the role.
+- `permissions` (List of String) IAM action strings granted via an inline policy.
 
 <a id="nestedatt--gcp"></a>
 
