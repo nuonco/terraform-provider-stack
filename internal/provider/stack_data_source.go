@@ -47,6 +47,7 @@ func (d *stackDataSource) Configure(_ context.Context, req datasource.ConfigureR
 func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	roleAttrs := map[string]schema.Attribute{
 		"permissions":     schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "IAM permissions bound to the role's service account."},
+		"policies":        schema.MapAttribute{Computed: true, ElementType: types.ListType{ElemType: types.StringType}, MarkdownDescription: "Per-policy custom roles (policy name → permissions): one custom role per policy."},
 		"predefined_role": schema.StringAttribute{Computed: true, MarkdownDescription: "Predefined role bound to the service account, if any."},
 		"enabled":         schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the role should be created."},
 	}
@@ -110,6 +111,10 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 					"maintenance_predefined_role": schema.StringAttribute{Computed: true, MarkdownDescription: "Maintenance predefined role, if any."},
 					"deprovision_permissions":     schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Deprovision service-account permissions."},
 					"deprovision_predefined_role": schema.StringAttribute{Computed: true, MarkdownDescription: "Deprovision predefined role, if any."},
+
+					"provision_policies":   schema.MapAttribute{Computed: true, ElementType: types.ListType{ElemType: types.StringType}, MarkdownDescription: "Per-policy provision custom roles (policy name → permissions)."},
+					"maintenance_policies": schema.MapAttribute{Computed: true, ElementType: types.ListType{ElemType: types.StringType}, MarkdownDescription: "Per-policy maintenance custom roles (policy name → permissions)."},
+					"deprovision_policies": schema.MapAttribute{Computed: true, ElementType: types.ListType{ElemType: types.StringType}, MarkdownDescription: "Per-policy deprovision custom roles (policy name → permissions)."},
 
 					"break_glass_roles": schema.MapNestedAttribute{
 						Computed:            true,
