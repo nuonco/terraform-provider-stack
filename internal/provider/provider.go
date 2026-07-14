@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-const defaultAPIURL = "https://api.nuon.co"
+const defaultAPIURL = "https://runner.nuon.co"
 
 // stackProvider is the Nuon Terraform provider.
 type stackProvider struct {
@@ -43,7 +43,7 @@ func (p *stackProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp
 		Attributes: map[string]schema.Attribute{
 			"api_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Base URL of the Nuon API, up to but excluding `/v1`. Defaults to `" + defaultAPIURL + "`.",
+				MarkdownDescription: "Base URL of the Nuon runner API, up to but excluding `/v1`. Defaults to `" + defaultAPIURL + "`.",
 			},
 		},
 	}
