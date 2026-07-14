@@ -21,9 +21,9 @@ terraform {
 }
 
 provider "stack" {
-  # Base URL of the Nuon API. Defaults to https://api.nuon.co.
+  # Base URL of the Nuon runner API. Defaults to https://runner.nuon.co.
   # Override with your control plane's domain if using Nuon BYOC.
-  # api_url = "https://api.nuon.my-domain.com"
+  # api_url = "https://runner.nuon.my-domain.com"
 }
 ```
 
@@ -33,4 +33,4 @@ provider "stack" {
 
 ### Optional
 
-- `api_url` (String) Base URL of the Nuon API, up to but excluding `/v1`. Defaults to `https://api.nuon.co`.
+- `api_url` (String) Base URL of the Nuon runner API, up to but excluding `/v1`. Defaults to `https://runner.nuon.co`.

@@ -12,8 +12,8 @@ terraform {
 }
 
 provider "stack" {
-  # Defaults to https://api.nuon.co
-  # api_url = "https://api.nuon.co"
+  # Defaults to https://runner.nuon.co
+  # api_url = "https://runner.nuon.co"
 }
 
 variable "phone_home_id" {

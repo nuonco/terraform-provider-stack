@@ -46,12 +46,12 @@ docs/
 
 ```hcl
 provider "stack" {
-  api_url = "https://api.nuon.co" # optional; base URL up to but excluding /v1
+  api_url = "https://runner.nuon.co" # optional; base URL up to but excluding /v1
 }
 ```
 
 The config endpoint lives on Nuon's runner API surface. In production `api_url`
-is `https://api.nuon.co`; for local development point it at the local runner API
+is `https://runner.nuon.co`; for local development point it at the local runner API
 (`http://localhost:8083`).
 
 ## Development
