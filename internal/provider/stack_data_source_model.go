@@ -38,9 +38,10 @@ type secretTF struct {
 
 // gcpRoleTF mirrors the module's break_glass_roles / custom_roles element.
 type gcpRoleTF struct {
-	Permissions    []string `tfsdk:"permissions"`
-	PredefinedRole string   `tfsdk:"predefined_role"`
-	Enabled        bool     `tfsdk:"enabled"`
+	Permissions    []string            `tfsdk:"permissions"`
+	Policies       map[string][]string `tfsdk:"policies"`
+	PredefinedRole string              `tfsdk:"predefined_role"`
+	Enabled        bool                `tfsdk:"enabled"`
 }
 
 // gcpTF carries the GCP-specific install-stack config.
@@ -54,6 +55,10 @@ type gcpTF struct {
 	MaintenancePredefinedRole string   `tfsdk:"maintenance_predefined_role"`
 	DeprovisionPermissions    []string `tfsdk:"deprovision_permissions"`
 	DeprovisionPredefinedRole string   `tfsdk:"deprovision_predefined_role"`
+
+	ProvisionPolicies   map[string][]string `tfsdk:"provision_policies"`
+	MaintenancePolicies map[string][]string `tfsdk:"maintenance_policies"`
+	DeprovisionPolicies map[string][]string `tfsdk:"deprovision_policies"`
 
 	BreakGlassRoles map[string]gcpRoleTF `tfsdk:"break_glass_roles"`
 	CustomRoles     map[string]gcpRoleTF `tfsdk:"custom_roles"`
@@ -163,6 +168,9 @@ func flattenGCP(g *stack.GCPConfig) *gcpTF {
 		MaintenancePredefinedRole: g.MaintenancePredefinedRole,
 		DeprovisionPermissions:    orEmptySlice(g.DeprovisionPermissions),
 		DeprovisionPredefinedRole: g.DeprovisionPredefinedRole,
+		ProvisionPolicies:         orEmptyMapList(g.ProvisionPolicies),
+		MaintenancePolicies:       orEmptyMapList(g.MaintenancePolicies),
+		DeprovisionPolicies:       orEmptyMapList(g.DeprovisionPolicies),
 		BreakGlassRoles:           flattenGCPRoles(g.BreakGlassRoles),
 		CustomRoles:               flattenGCPRoles(g.CustomRoles),
 	}
@@ -173,6 +181,7 @@ func flattenGCPRoles(in map[string]stack.GCPRole) map[string]gcpRoleTF {
 	for name, r := range in {
 		out[name] = gcpRoleTF{
 			Permissions:    orEmptySlice(r.Permissions),
+			Policies:       orEmptyMapList(r.Policies),
 			PredefinedRole: r.PredefinedRole,
 			Enabled:        r.Enabled,
 		}
@@ -190,6 +199,13 @@ func orEmptySlice(s []string) []string {
 func orEmptyMap(m map[string]string) map[string]string {
 	if m == nil {
 		return map[string]string{}
+	}
+	return m
+}
+
+func orEmptyMapList(m map[string][]string) map[string][]string {
+	if m == nil {
+		return map[string][]string{}
 	}
 	return m
 }
