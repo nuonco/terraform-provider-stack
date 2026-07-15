@@ -5,7 +5,7 @@ go 1.25.8
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.25.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
-	github.com/nuonco/nuon/sdks/stack v0.0.0-20260715002052-958b13b9dc77
+	github.com/nuonco/nuon/sdks/stack v0.0.0-20260715154547-6a12d1f0da81
 )
 
 require (
