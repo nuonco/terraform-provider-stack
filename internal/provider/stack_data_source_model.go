@@ -48,6 +48,7 @@ type gcpRoleTF struct {
 type gcpTF struct {
 	RunnerInitScriptURL string `tfsdk:"runner_init_script_url"`
 	RunnerAPIToken      string `tfsdk:"runner_api_token"`
+	RunnerMachineType   string `tfsdk:"runner_machine_type"`
 
 	ProvisionPermissions      []string `tfsdk:"provision_permissions"`
 	ProvisionPredefinedRole   string   `tfsdk:"provision_predefined_role"`
@@ -76,6 +77,7 @@ type awsRoleTF struct {
 type awsTF struct {
 	Region                 string   `tfsdk:"region"`
 	ClusterName            string   `tfsdk:"cluster_name"`
+	RunnerMachineType      string   `tfsdk:"runner_machine_type"`
 	NuonSupportIAMRoleARNs []string `tfsdk:"nuon_support_iam_role_arns"`
 
 	ProvisionPermissions            []string `tfsdk:"provision_permissions"`
@@ -130,6 +132,7 @@ func flattenAWS(a *stack.AWSConfig) *awsTF {
 	return &awsTF{
 		Region:                          a.Region,
 		ClusterName:                     a.ClusterName,
+		RunnerMachineType:               a.RunnerMachineType,
 		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIAMRoleARNs),
 		ProvisionPermissions:            orEmptySlice(a.ProvisionPermissions),
 		ProvisionInlinePolicyDocument:   a.ProvisionInlinePolicyDocument,
@@ -162,6 +165,7 @@ func flattenGCP(g *stack.GCPConfig) *gcpTF {
 	return &gcpTF{
 		RunnerInitScriptURL:       g.RunnerInitScriptURL,
 		RunnerAPIToken:            g.RunnerAPIToken,
+		RunnerMachineType:         g.RunnerMachineType,
 		ProvisionPermissions:      orEmptySlice(g.ProvisionPermissions),
 		ProvisionPredefinedRole:   g.ProvisionPredefinedRole,
 		MaintenancePermissions:    orEmptySlice(g.MaintenancePermissions),

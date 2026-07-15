@@ -104,6 +104,7 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Attributes: map[string]schema.Attribute{
 					"runner_init_script_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner bootstrap script URL."},
 					"runner_api_token":       schema.StringAttribute{Computed: true, Sensitive: true, MarkdownDescription: "Runner API token."},
+					"runner_machine_type":    schema.StringAttribute{Computed: true, MarkdownDescription: "GCE machine type for the runner instance."},
 
 					"provision_permissions":       schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision service-account permissions."},
 					"provision_predefined_role":   schema.StringAttribute{Computed: true, MarkdownDescription: "Provision predefined role, if any."},
@@ -135,6 +136,7 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Attributes: map[string]schema.Attribute{
 					"region":                     schema.StringAttribute{Computed: true, MarkdownDescription: "AWS region the stack is provisioned into."},
 					"cluster_name":               schema.StringAttribute{Computed: true, MarkdownDescription: "Resolved EKS cluster-name tag value."},
+					"runner_machine_type":        schema.StringAttribute{Computed: true, MarkdownDescription: "EC2 instance type for the runner host."},
 					"nuon_support_iam_role_arns": schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Nuon control-plane IAM role ARNs allowed to assume the operation roles."},
 
 					"provision_permissions":              schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision role inline-policy IAM actions."},
