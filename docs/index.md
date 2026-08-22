@@ -44,5 +44,5 @@ provider "stack" {
 ### Optional
 
 - `api_token` (String, Sensitive) Nuon API token, issued by the vendor alongside the install. Falls back to `NUON_API_TOKEN`. If neither is set, the provider looks for an ambient OIDC token (GitHub Actions with `permissions: id-token: write`, `NUON_OIDC_TOKEN`, or `NUON_OIDC_TOKEN_FILE`) and exchanges it for a short-lived token.
-- `api_url` (String) Base URL of the Nuon runner API, up to but excluding `/v1`. Defaults to `https://runner.nuon.co`.
+- `api_url` (String) Base URL of the Nuon runner API, up to but excluding `/v1`. Falls back to `NUON_API_URL`, then `https://runner.nuon.co`.
 - `org_id` (String) Nuon organization ID. Required only when authenticating via OIDC, where the exchange must name the org whose trust policies apply. Falls back to `NUON_ORG_ID`.

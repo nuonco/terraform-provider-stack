@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -11,6 +13,12 @@ import (
 )
 
 const defaultAPIURL = "https://runner.nuon.co"
+
+// apiURLEnvVar mirrors the credential attributes, which fall back to the
+// environment. Without it api_url is the one setting that silently defaults to
+// production, so pointing at a local control plane means editing config that was
+// generated for a customer.
+const apiURLEnvVar = "NUON_API_URL"
 
 // stackProvider is the Nuon Terraform provider.
 type stackProvider struct {
@@ -45,7 +53,7 @@ func (p *stackProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp
 		Attributes: map[string]schema.Attribute{
 			"api_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Base URL of the Nuon runner API, up to but excluding `/v1`. Defaults to `" + defaultAPIURL + "`.",
+				MarkdownDescription: "Base URL of the Nuon runner API, up to but excluding `/v1`. Falls back to `" + apiURLEnvVar + "`, then `" + defaultAPIURL + "`.",
 			},
 			"api_token": schema.StringAttribute{
 				Optional:            true,
@@ -74,6 +82,9 @@ func (p *stackProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	}
 
 	apiURL := defaultAPIURL
+	if env := strings.TrimSpace(os.Getenv(apiURLEnvVar)); env != "" {
+		apiURL = env
+	}
 	if !data.APIURL.IsNull() && data.APIURL.ValueString() != "" {
 		apiURL = data.APIURL.ValueString()
 	}
