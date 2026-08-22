@@ -62,16 +62,16 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Synthetic identifier, `install_id:phone_home_id`.",
+				MarkdownDescription: "Synthetic identifier, the install ID.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"install_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Nuon install ID (URL path).",
 			},
-			"phone_home_id": schema.StringAttribute{
+			"phone_home_url": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Per-stack-version identifier from the control plane; acts as the secret for this report.",
+				MarkdownDescription: "Phone-home endpoint for this stack version, read from `stack_config.phone_home_url`. Sourced from the API rather than configured by hand: it embeds a per-stack-version identifier the caller has no other way to know.",
 			},
 			"phone_home_type": schema.StringAttribute{
 				Required:            true,
@@ -95,7 +95,7 @@ func (r *phoneHomeResource) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("phone home failed", err.Error())
 		return
 	}
-	data.ID = types.StringValue(data.InstallID.ValueString() + ":" + data.PhoneHomeID.ValueString())
+	data.ID = types.StringValue(data.InstallID.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -114,7 +114,7 @@ func (r *phoneHomeResource) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("phone home failed", err.Error())
 		return
 	}
-	data.ID = types.StringValue(data.InstallID.ValueString() + ":" + data.PhoneHomeID.ValueString())
+	data.ID = types.StringValue(data.InstallID.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -141,5 +141,10 @@ func (r *phoneHomeResource) report(ctx context.Context, data *phoneHomeResourceM
 	payload["request_type"] = requestType
 	payload["phone_home_type"] = data.PhoneHomeType.ValueString()
 
-	return stack.PhoneHome(ctx, r.cfg.apiURL, data.InstallID.ValueString(), data.PhoneHomeID.ValueString(), payload)
+	return stack.PhoneHome(ctx, stack.Options{
+		APIURL:    r.cfg.apiURL,
+		InstallID: data.InstallID.ValueString(),
+		APIToken:  r.cfg.apiToken,
+		OrgID:     r.cfg.orgID,
+	}, data.PhoneHomeURL.ValueString(), payload)
 }

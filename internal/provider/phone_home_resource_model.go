@@ -9,7 +9,7 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 type phoneHomeResourceModel struct {
 	ID            types.String `tfsdk:"id"`
 	InstallID     types.String `tfsdk:"install_id"`
-	PhoneHomeID   types.String `tfsdk:"phone_home_id"`
+	PhoneHomeURL  types.String `tfsdk:"phone_home_url"`
 	PhoneHomeType types.String `tfsdk:"phone_home_type"`
 	Payload       types.String `tfsdk:"payload"`
 }

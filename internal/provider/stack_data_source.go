@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -62,12 +61,11 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Reads a Nuon install stack's rendered configuration (runner, permissions, inputs, secrets) from the control plane. Intended for use inside install-stacks modules so the config is read from the API rather than passed in as tfvars.",
 		Attributes: map[string]schema.Attribute{
-			"phone_home_id": schema.StringAttribute{
+			"install_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Per-stack-version identifier from the Nuon control plane; acts as the secret for this read.",
+				MarkdownDescription: "Nuon install ID. Not a secret — the provider's credentials are what authorize this read.",
 			},
 
-			"install_id":     schema.StringAttribute{Computed: true, MarkdownDescription: "Nuon install ID."},
 			"org_id":         schema.StringAttribute{Computed: true, MarkdownDescription: "Nuon organization ID."},
 			"app_id":         schema.StringAttribute{Computed: true, MarkdownDescription: "Nuon application ID."},
 			"cloud":          schema.StringAttribute{Computed: true, MarkdownDescription: "Target cloud (aws or gcp)."},
@@ -172,8 +170,12 @@ func (d *stackDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	url := strings.TrimRight(d.cfg.apiURL, "/") + "/v1/stack-runs/" + data.PhoneHomeID.ValueString()
-	cfg, err := stack.FetchConfig(ctx, url)
+	cfg, err := stack.FetchConfig(ctx, stack.Options{
+		APIURL:    d.cfg.apiURL,
+		InstallID: data.InstallID.ValueString(),
+		APIToken:  d.cfg.apiToken,
+		OrgID:     d.cfg.orgID,
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("fetch stack config failed", err.Error())
 		return

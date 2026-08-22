@@ -11,8 +11,6 @@ import (
 // legacy flow wrote to tfvars), so an install-stacks module can read it from the
 // API instead of receiving it as variables.
 type stackDataSourceModel struct {
-	PhoneHomeID types.String `tfsdk:"phone_home_id"`
-
 	InstallID    types.String `tfsdk:"install_id"`
 	OrgID        types.String `tfsdk:"org_id"`
 	AppID        types.String `tfsdk:"app_id"`
@@ -94,8 +92,9 @@ type awsTF struct {
 	CustomRoles     map[string]awsRoleTF `tfsdk:"custom_roles"`
 }
 
-// flattenConfig copies the fetched SDK config onto the data source model,
-// preserving the caller-supplied phone_home_id.
+// flattenConfig copies the fetched SDK config onto the data source model. install_id
+// is the caller's input and is echoed back from the response, which the control plane
+// resolves to the same value.
 func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 	data.InstallID = types.StringValue(cfg.InstallID)
 	data.OrgID = types.StringValue(cfg.OrgID)

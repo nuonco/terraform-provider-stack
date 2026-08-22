@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	stack "github.com/nuonco/nuon/sdks/stack"
 )
@@ -47,7 +46,6 @@ func TestFlattenConfigGCP(t *testing.T) {
 	}
 
 	var data stackDataSourceModel
-	data.PhoneHomeID = types.StringValue("ph123")
 	flattenConfig(&data, cfg)
 
 	if data.InstallID.ValueString() != "inst123" {
@@ -56,8 +54,8 @@ func TestFlattenConfigGCP(t *testing.T) {
 	if data.Cloud.ValueString() != "gcp" {
 		t.Errorf("cloud = %q", data.Cloud.ValueString())
 	}
-	if data.PhoneHomeID.ValueString() != "ph123" {
-		t.Errorf("phone_home_id overwritten: %q", data.PhoneHomeID.ValueString())
+	if data.PhoneHomeURL.ValueString() != "https://api.example.com/v1/installs/inst123/phone-home/ph123" {
+		t.Errorf("phone_home_url = %q", data.PhoneHomeURL.ValueString())
 	}
 	if data.Secrets["db_password"].Value != "hunter2" {
 		t.Errorf("secret value = %q", data.Secrets["db_password"].Value)
@@ -95,7 +93,6 @@ func TestFlattenConfigAWS(t *testing.T) {
 	}
 
 	var data stackDataSourceModel
-	data.PhoneHomeID = types.StringValue("ph123")
 	flattenConfig(&data, cfg)
 
 	if data.Cloud.ValueString() != "aws" {

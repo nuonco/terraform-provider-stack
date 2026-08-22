@@ -1,0 +1,6 @@
+# local multi-module development; see the comment in go.work
+go.work
+go.work.sum
+
+# built provider binary, installed into the dev_overrides dir instead
+terraform-provider-stack

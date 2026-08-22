@@ -1,8 +1,8 @@
-# Read an install stack's rendered configuration from the Nuon control plane,
-# keyed by the phone_home_id supplied to the install-stacks module. See the
-# repository's examples/data-source-gcp for a full end-to-end module wiring.
+# Read an install stack's rendered configuration from the Nuon control plane. The
+# install ID is not a secret — the provider's credentials are what authorize the
+# read. See the repository's examples/data-source-gcp for a full module wiring.
 data "stack_config" "this" {
-  phone_home_id = var.phone_home_id
+  install_id = var.install_id
 }
 
 output "install_id" {
