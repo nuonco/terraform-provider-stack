@@ -117,3 +117,33 @@ func TestFlattenConfigAWS(t *testing.T) {
 		t.Errorf("gcp should be nil for aws config: %+v", data.GCP)
 	}
 }
+
+// install_inputs is a released map[string]string with no room for per-key metadata,
+// so sensitivity arrives as a sibling name list the module can act on.
+func TestFlattenConfigSensitiveInputNames(t *testing.T) {
+	cfg := &stack.Config{
+		Cloud:           stack.CloudAWS,
+		InstallInputs:   map[string]string{"domain": "example.com", "api_key": "secret"},
+		SensitiveInputs: []string{"api_key"},
+		AWS:             &stack.AWSConfig{Region: "us-west-2"},
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if len(data.SensitiveInputNames) != 1 || data.SensitiveInputNames[0] != "api_key" {
+		t.Errorf("sensitive_input_names = %v", data.SensitiveInputNames)
+	}
+	if data.InstallInputs["api_key"] != "secret" {
+		t.Errorf("sensitive values still travel in install_inputs; got %q", data.InstallInputs["api_key"])
+	}
+}
+
+// Never null: modules call length()/for_each on it without coalescing.
+func TestFlattenConfigSensitiveInputNamesEmpty(t *testing.T) {
+	var data stackDataSourceModel
+	flattenConfig(&data, &stack.Config{Cloud: stack.CloudAWS})
+	if data.SensitiveInputNames == nil {
+		t.Error("sensitive_input_names must be empty, not null")
+	}
+}

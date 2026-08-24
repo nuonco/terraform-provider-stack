@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -79,7 +80,17 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"payload": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The phone-home body as a JSON object string (typically `jsonencode({...})`). The provider injects `request_type` and `phone_home_type`; any values for those keys in the payload are overwritten.",
+				MarkdownDescription: "The phone-home body as a JSON object string (typically `jsonencode({...})`). The provider injects `request_type`, `phone_home_type` and `inputs`; any values for those keys in the payload are overwritten.",
+			},
+			"inputs": schema.MapAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				// A terraform map is sensitive as a whole or not at all, and any
+				// individual install input may be declared sensitive on the app —
+				// so the map is marked sensitive, matching how the data source
+				// treats its whole `secrets` map.
+				Sensitive:           true,
+				MarkdownDescription: "Install-input values this stack resolved, sent as the `inputs` object. The control plane merges them over the install's current inputs and makes the result the install's inputs, so a module's tfvars becomes a way to set input values. Every key must be a customer-source app input; anything else is rejected.",
 			},
 		},
 	}
@@ -131,6 +142,17 @@ func (r *phoneHomeResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 }
 
+// inputsFromMap converts the resource's inputs attribute to the payload object.
+// Null and unknown both mean "no inputs reported".
+func inputsFromMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
+	if m.IsNull() || m.IsUnknown() {
+		return nil, nil
+	}
+	out := make(map[string]string, len(m.Elements()))
+	diags := m.ElementsAs(ctx, &out, false)
+	return out, diags
+}
+
 func (r *phoneHomeResource) report(ctx context.Context, data *phoneHomeResourceModel, requestType string) error {
 	payload := map[string]any{}
 	if raw := data.Payload.ValueString(); raw != "" {
@@ -140,6 +162,16 @@ func (r *phoneHomeResource) report(ctx context.Context, data *phoneHomeResourceM
 	}
 	payload["request_type"] = requestType
 	payload["phone_home_type"] = data.PhoneHomeType.ValueString()
+
+	// Omitted entirely when unset: an empty object would be a report that the stack
+	// resolved no inputs, which is not the same as not reporting inputs at all.
+	inputs, diags := inputsFromMap(ctx, data.Inputs)
+	if diags.HasError() {
+		return fmt.Errorf("inputs must be a map of strings: %v", diags.Errors())
+	}
+	if len(inputs) > 0 {
+		payload["inputs"] = inputs
+	}
 
 	return stack.PhoneHome(ctx, stack.Options{
 		APIURL:    r.cfg.apiURL,

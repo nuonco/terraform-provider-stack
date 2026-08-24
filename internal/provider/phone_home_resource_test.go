@@ -4,7 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestPhoneHomeResourceSchema(t *testing.T) {
@@ -27,5 +29,58 @@ func TestPhoneHomeResourceTypeName(t *testing.T) {
 	r.Metadata(ctx, resource.MetadataRequest{ProviderTypeName: "stack"}, &resp)
 	if resp.TypeName != "stack_phone_home" {
 		t.Errorf("type name = %q, want stack_phone_home", resp.TypeName)
+	}
+}
+
+// The whole inputs map is sensitive: terraform maps are all-or-nothing, and any
+// individual install input may be declared sensitive on the app.
+func TestPhoneHomeInputsAttributeIsSensitive(t *testing.T) {
+	ctx := context.Background()
+	r := NewPhoneHomeResource()
+	var resp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &resp)
+
+	attr, ok := resp.Schema.Attributes["inputs"]
+	if !ok {
+		t.Fatal("inputs attribute missing")
+	}
+	if !attr.IsSensitive() {
+		t.Error("inputs must be sensitive")
+	}
+	if !attr.IsOptional() {
+		t.Error("inputs must be optional")
+	}
+}
+
+func TestInputsFromMap(t *testing.T) {
+	ctx := context.Background()
+
+	// Null and unknown both mean "no inputs reported" — the key is then omitted
+	// from the payload rather than sent as an empty object.
+	for name, m := range map[string]types.Map{
+		"null":    types.MapNull(types.StringType),
+		"unknown": types.MapUnknown(types.StringType),
+	} {
+		got, diags := inputsFromMap(ctx, m)
+		if diags.HasError() {
+			t.Fatalf("%s: diagnostics: %+v", name, diags)
+		}
+		if len(got) != 0 {
+			t.Errorf("%s: got %v, want empty", name, got)
+		}
+	}
+
+	m, diags := types.MapValue(types.StringType, map[string]attr.Value{
+		"domain": types.StringValue("example.com"),
+	})
+	if diags.HasError() {
+		t.Fatalf("map value: %+v", diags)
+	}
+	got, diags := inputsFromMap(ctx, m)
+	if diags.HasError() {
+		t.Fatalf("diagnostics: %+v", diags)
+	}
+	if got["domain"] != "example.com" {
+		t.Errorf("domain = %q", got["domain"])
 	}
 }

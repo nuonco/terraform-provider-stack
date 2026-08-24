@@ -45,6 +45,7 @@ output "install_id" {
 - `runner_api_url` (String) Runner API URL the runner reports to.
 - `runner_id` (String) Runner ID for this install.
 - `secrets` (Attributes Map, Sensitive) Customer-supplied secrets, keyed by name. (see [below for nested schema](#nestedatt--secrets))
+- `sensitive_input_names` (List of String) Names of the entries in `install_inputs` the app declares sensitive.
 
 <a id="nestedatt--aws"></a>
 ### Nested Schema for `aws`

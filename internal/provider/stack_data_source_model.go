@@ -20,6 +20,7 @@ type stackDataSourceModel struct {
 	PhoneHomeURL types.String `tfsdk:"phone_home_url"`
 
 	InstallInputs       map[string]string   `tfsdk:"install_inputs"`
+	SensitiveInputNames []string            `tfsdk:"sensitive_input_names"`
 	AutoGenerateSecrets []string            `tfsdk:"auto_generate_secrets"`
 	Secrets             map[string]secretTF `tfsdk:"secrets"`
 
@@ -108,6 +109,7 @@ func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 	// length()/for_each on them without coalescing — matching the contract the
 	// legacy tfvars flow provided via variable defaults.
 	data.InstallInputs = orEmptyMap(cfg.InstallInputs)
+	data.SensitiveInputNames = orEmptySlice(cfg.SensitiveInputs)
 	data.AutoGenerateSecrets = orEmptySlice(cfg.AutoGenerateSecrets)
 
 	data.Secrets = make(map[string]secretTF, len(cfg.Secrets))

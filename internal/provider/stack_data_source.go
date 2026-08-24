@@ -78,6 +78,15 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				ElementType:         types.StringType,
 				MarkdownDescription: "Customer install-input values.",
 			},
+			"sensitive_input_names": schema.ListAttribute{
+				Computed:    true,
+				ElementType: types.StringType,
+				// Names, not values: install_inputs is a released map[string]string,
+				// and a terraform map can only be sensitive as a whole. Marking the
+				// whole map sensitive would redact every non-sensitive input too, so
+				// the names are surfaced and the module decides what to do with them.
+				MarkdownDescription: "Names of the entries in `install_inputs` the app declares sensitive.",
+			},
 			"auto_generate_secrets": schema.ListAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,
