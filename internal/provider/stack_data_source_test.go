@@ -36,6 +36,8 @@ func TestFlattenConfigGCP(t *testing.T) {
 			"db_password": {Description: "db", Required: true, Value: "hunter2"},
 		},
 		GCP: &stack.GCPConfig{
+			ProjectID:            "my-project",
+			Region:               "us-central1",
 			RunnerInitScriptURL:  "https://init.sh",
 			RunnerAPIToken:       "tok",
 			ProvisionPermissions: []string{"compute.instances.create"},
@@ -63,8 +65,35 @@ func TestFlattenConfigGCP(t *testing.T) {
 	if data.GCP == nil || data.GCP.RunnerAPIToken != "tok" {
 		t.Fatalf("gcp not flattened: %+v", data.GCP)
 	}
+	if data.GCP.ProjectID != "my-project" {
+		t.Errorf("gcp.project_id = %q", data.GCP.ProjectID)
+	}
+	if data.GCP.Region != "us-central1" {
+		t.Errorf("gcp.region = %q", data.GCP.Region)
+	}
 	if r := data.GCP.CustomRoles["extra"]; !r.Enabled || len(r.Permissions) != 1 {
 		t.Errorf("custom role = %+v", r)
+	}
+}
+
+// An install with no recorded project/region must flatten to empty strings, not
+// fail: that is the state a first apply is in, and the module fills the gap from
+// its own project_id/region variables.
+func TestFlattenConfigGCPNoTarget(t *testing.T) {
+	cfg := &stack.Config{
+		InstallID: "inst123",
+		Cloud:     stack.CloudGCP,
+		GCP:       &stack.GCPConfig{RunnerInitScriptURL: "https://init.sh"},
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if data.GCP == nil {
+		t.Fatal("gcp not flattened")
+	}
+	if data.GCP.ProjectID != "" || data.GCP.Region != "" {
+		t.Errorf("expected empty target, got project=%q region=%q", data.GCP.ProjectID, data.GCP.Region)
 	}
 }
 

@@ -46,6 +46,14 @@ type gcpRoleTF struct {
 
 // gcpTF carries the GCP-specific install-stack config.
 type gcpTF struct {
+	// The install's GCP target. Both may be empty: a GCP install can be created
+	// without a project/region and have them recorded by the first provision, so
+	// the module treats these as a base its own variables can override rather
+	// than as guaranteed values. The AWS counterpart (awsTF.Region) is always
+	// set, which is why only GCP needs the override path.
+	ProjectID string `tfsdk:"project_id"`
+	Region    string `tfsdk:"region"`
+
 	RunnerInitScriptURL string `tfsdk:"runner_init_script_url"`
 	RunnerAPIToken      string `tfsdk:"runner_api_token"`
 	RunnerMachineType   string `tfsdk:"runner_machine_type"`
@@ -166,6 +174,8 @@ func flattenAWSRoles(in map[string]stack.RoleConfig) map[string]awsRoleTF {
 
 func flattenGCP(g *stack.GCPConfig) *gcpTF {
 	return &gcpTF{
+		ProjectID:                 g.ProjectID,
+		Region:                    g.Region,
 		RunnerInitScriptURL:       g.RunnerInitScriptURL,
 		RunnerAPIToken:            g.RunnerAPIToken,
 		RunnerMachineType:         g.RunnerMachineType,

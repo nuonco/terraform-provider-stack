@@ -117,6 +117,9 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Computed:            true,
 				MarkdownDescription: "GCP-specific configuration. Present when cloud is gcp.",
 				Attributes: map[string]schema.Attribute{
+					"project_id": schema.StringAttribute{Computed: true, MarkdownDescription: "GCP project the stack is provisioned into. Empty until the install has a recorded project, so the module's `project_id` variable can supply it on a first apply."},
+					"region":     schema.StringAttribute{Computed: true, MarkdownDescription: "GCP region the stack is provisioned into. Empty until the install has a recorded region, so the module's `region` variable can supply it on a first apply."},
+
 					"runner_init_script_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner bootstrap script URL."},
 					"runner_api_token":       schema.StringAttribute{Computed: true, Sensitive: true, MarkdownDescription: "Runner API token."},
 					"runner_machine_type":    schema.StringAttribute{Computed: true, MarkdownDescription: "GCE machine type for the runner instance."},
