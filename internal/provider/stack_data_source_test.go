@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	stack "github.com/nuonco/nuon/sdks/stack"
 )
@@ -47,7 +46,6 @@ func TestFlattenConfigGCP(t *testing.T) {
 	}
 
 	var data stackDataSourceModel
-	data.PhoneHomeID = types.StringValue("ph123")
 	flattenConfig(&data, cfg)
 
 	if data.InstallID.ValueString() != "inst123" {
@@ -56,8 +54,8 @@ func TestFlattenConfigGCP(t *testing.T) {
 	if data.Cloud.ValueString() != "gcp" {
 		t.Errorf("cloud = %q", data.Cloud.ValueString())
 	}
-	if data.PhoneHomeID.ValueString() != "ph123" {
-		t.Errorf("phone_home_id overwritten: %q", data.PhoneHomeID.ValueString())
+	if data.PhoneHomeURL.ValueString() != "https://api.example.com/v1/installs/inst123/phone-home/ph123" {
+		t.Errorf("phone_home_url = %q", data.PhoneHomeURL.ValueString())
 	}
 	if data.Secrets["db_password"].Value != "hunter2" {
 		t.Errorf("secret value = %q", data.Secrets["db_password"].Value)
@@ -95,7 +93,6 @@ func TestFlattenConfigAWS(t *testing.T) {
 	}
 
 	var data stackDataSourceModel
-	data.PhoneHomeID = types.StringValue("ph123")
 	flattenConfig(&data, cfg)
 
 	if data.Cloud.ValueString() != "aws" {
@@ -118,5 +115,35 @@ func TestFlattenConfigAWS(t *testing.T) {
 	}
 	if data.GCP != nil {
 		t.Errorf("gcp should be nil for aws config: %+v", data.GCP)
+	}
+}
+
+// install_inputs is a released map[string]string with no room for per-key metadata,
+// so sensitivity arrives as a sibling name list the module can act on.
+func TestFlattenConfigSensitiveInputNames(t *testing.T) {
+	cfg := &stack.Config{
+		Cloud:           stack.CloudAWS,
+		InstallInputs:   map[string]string{"domain": "example.com", "api_key": "secret"},
+		SensitiveInputs: []string{"api_key"},
+		AWS:             &stack.AWSConfig{Region: "us-west-2"},
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if len(data.SensitiveInputNames) != 1 || data.SensitiveInputNames[0] != "api_key" {
+		t.Errorf("sensitive_input_names = %v", data.SensitiveInputNames)
+	}
+	if data.InstallInputs["api_key"] != "secret" {
+		t.Errorf("sensitive values still travel in install_inputs; got %q", data.InstallInputs["api_key"])
+	}
+}
+
+// Never null: modules call length()/for_each on it without coalescing.
+func TestFlattenConfigSensitiveInputNamesEmpty(t *testing.T) {
+	var data stackDataSourceModel
+	flattenConfig(&data, &stack.Config{Cloud: stack.CloudAWS})
+	if data.SensitiveInputNames == nil {
+		t.Error("sensitive_input_names must be empty, not null")
 	}
 }

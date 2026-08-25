@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -62,16 +63,16 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Synthetic identifier, `install_id:phone_home_id`.",
+				MarkdownDescription: "Synthetic identifier, the install ID.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"install_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Nuon install ID (URL path).",
 			},
-			"phone_home_id": schema.StringAttribute{
+			"phone_home_url": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Per-stack-version identifier from the control plane; acts as the secret for this report.",
+				MarkdownDescription: "Phone-home endpoint for this stack version, read from `stack_config.phone_home_url`. Sourced from the API rather than configured by hand: it embeds a per-stack-version identifier the caller has no other way to know.",
 			},
 			"phone_home_type": schema.StringAttribute{
 				Required:            true,
@@ -79,7 +80,17 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"payload": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The phone-home body as a JSON object string (typically `jsonencode({...})`). The provider injects `request_type` and `phone_home_type`; any values for those keys in the payload are overwritten.",
+				MarkdownDescription: "The phone-home body as a JSON object string (typically `jsonencode({...})`). The provider injects `request_type`, `phone_home_type` and `inputs`; any values for those keys in the payload are overwritten.",
+			},
+			"inputs": schema.MapAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				// A terraform map is sensitive as a whole or not at all, and any
+				// individual install input may be declared sensitive on the app —
+				// so the map is marked sensitive, matching how the data source
+				// treats its whole `secrets` map.
+				Sensitive:           true,
+				MarkdownDescription: "Install-input values this stack resolved, sent as the `inputs` object. The control plane merges them over the install's current inputs and makes the result the install's inputs, so a module's tfvars becomes a way to set input values. Every key must be a customer-source app input; anything else is rejected.",
 			},
 		},
 	}
@@ -95,7 +106,7 @@ func (r *phoneHomeResource) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("phone home failed", err.Error())
 		return
 	}
-	data.ID = types.StringValue(data.InstallID.ValueString() + ":" + data.PhoneHomeID.ValueString())
+	data.ID = types.StringValue(data.InstallID.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -114,7 +125,7 @@ func (r *phoneHomeResource) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.AddError("phone home failed", err.Error())
 		return
 	}
-	data.ID = types.StringValue(data.InstallID.ValueString() + ":" + data.PhoneHomeID.ValueString())
+	data.ID = types.StringValue(data.InstallID.ValueString())
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -131,6 +142,17 @@ func (r *phoneHomeResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 }
 
+// inputsFromMap converts the resource's inputs attribute to the payload object.
+// Null and unknown both mean "no inputs reported".
+func inputsFromMap(ctx context.Context, m types.Map) (map[string]string, diag.Diagnostics) {
+	if m.IsNull() || m.IsUnknown() {
+		return nil, nil
+	}
+	out := make(map[string]string, len(m.Elements()))
+	diags := m.ElementsAs(ctx, &out, false)
+	return out, diags
+}
+
 func (r *phoneHomeResource) report(ctx context.Context, data *phoneHomeResourceModel, requestType string) error {
 	payload := map[string]any{}
 	if raw := data.Payload.ValueString(); raw != "" {
@@ -141,5 +163,20 @@ func (r *phoneHomeResource) report(ctx context.Context, data *phoneHomeResourceM
 	payload["request_type"] = requestType
 	payload["phone_home_type"] = data.PhoneHomeType.ValueString()
 
-	return stack.PhoneHome(ctx, r.cfg.apiURL, data.InstallID.ValueString(), data.PhoneHomeID.ValueString(), payload)
+	// Omitted entirely when unset: an empty object would be a report that the stack
+	// resolved no inputs, which is not the same as not reporting inputs at all.
+	inputs, diags := inputsFromMap(ctx, data.Inputs)
+	if diags.HasError() {
+		return fmt.Errorf("inputs must be a map of strings: %v", diags.Errors())
+	}
+	if len(inputs) > 0 {
+		payload["inputs"] = inputs
+	}
+
+	return stack.PhoneHome(ctx, stack.Options{
+		APIURL:    r.cfg.apiURL,
+		InstallID: data.InstallID.ValueString(),
+		APIToken:  r.cfg.apiToken,
+		OrgID:     r.cfg.orgID,
+	}, data.PhoneHomeURL.ValueString(), payload)
 }

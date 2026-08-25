@@ -8,7 +8,7 @@ The provider exposes two surfaces:
 
 - **`stack_config` data source** — read-only fetch of a stack's rendered config
   (runner details, permissions, roles, install inputs, secrets) keyed by
-  `phone_home_id`. Intended for use _inside_ an install-stacks module (e.g.
+  `install_id`. Intended for use _inside_ an install-stacks module (e.g.
   `nuonco/install-stacks//gcp`) so it reads config from the API rather than
   receiving it as generated tfvars. Provisions nothing.
 - **`stack_phone_home` resource** — reports the result of a run back to the
@@ -17,19 +17,35 @@ The provider exposes two surfaces:
   the phone-home `request_type` (Create/Update/Delete); the reported outputs are
   passed as an opaque `jsonencode({...})` payload.
 
-The data source calls the stack SDK's read-only `FetchConfig`
-(`internal/stack`), which hits the public, side-effect-free
-`GET /v1/stack-runs/{phone_home_id}/config`
-endpoint. The resource calls the SDK's `PhoneHome`, which POSTs to the public
-`/v1/installs/{install_id}/phone-home/{phone_home_id}` endpoint. In both cases
-the per-stack-version `phone_home_id` in the URL is the secret.
+The data source calls the stack SDK's read-only `FetchConfig`, which hits the
+authenticated, side-effect-free `GET /v1/stacks/{install_id}/config` endpoint.
+The resource calls the SDK's `PhoneHome`, which POSTs to the URL that response
+returns as `phone_home_url`.
+
+## Authentication
+
+Both surfaces authenticate with a Nuon API token, resolved the same way the
+`nuon` CLI resolves it:
+
+1. the provider's `api_token` argument
+2. `NUON_API_TOKEN`
+3. an ambient OIDC token, exchanged at `/v1/oidc/token` for a short-lived token
+
+The third path is the one to prefer in CI: GitHub Actions mints an ID token per
+run (`permissions: id-token: write`), so nothing long-lived is stored. It needs
+`org_id` (or `NUON_ORG_ID`), because the exchange has to name the org whose
+trust policies apply.
+
+`install_id` is an identifier, not a credential. This is the substantive change
+from earlier versions, where the per-stack-version `phone_home_id` in the URL
+path *was* the secret and the endpoints were public.
 
 ## Layout
 
 ```
 main.go                          provider entry point (providerserver.Serve)
 internal/provider/
-  provider.go                    provider schema + api_url; registers the data source + resource
+  provider.go                    provider schema + api_url/api_token/org_id; registers the data source + resource
   stack_data_source.go           stack_config data source: schema + read
   stack_data_source_model.go     data source model + config flattener
   phone_home_resource.go         stack_phone_home resource: schema + lifecycle

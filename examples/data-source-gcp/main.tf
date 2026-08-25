@@ -1,7 +1,7 @@
 # Example: an install-stacks/gcp module reading its configuration from the Nuon
 # control plane via the stack_config data source, instead of receiving it as
-# generated tfvars. The customer supplies only the phone_home_id (plus the GCP
-# project/region, which are not known server-side).
+# generated tfvars. The customer supplies only the install_id and a credential
+# (plus the GCP project/region, which are not known server-side).
 
 terraform {
   required_providers {
@@ -14,10 +14,20 @@ terraform {
 provider "stack" {
   # Defaults to https://runner.nuon.co
   # api_url = "https://runner.nuon.co"
+
+  # Falls back to NUON_API_TOKEN, then to an ambient OIDC token exchanged for a
+  # short-lived one (set org_id instead of api_token for that path).
+  api_token = var.api_token
 }
 
-variable "phone_home_id" {
+variable "install_id" {
   type = string
+}
+
+variable "api_token" {
+  type      = string
+  sensitive = true
+  default   = ""
 }
 
 variable "gcp_project_id" {
@@ -29,7 +39,7 @@ variable "gcp_region" {
 }
 
 data "stack_config" "this" {
-  phone_home_id = var.phone_home_id
+  install_id = var.install_id
 }
 
 module "stack" {
@@ -72,7 +82,7 @@ module "stack" {
 # Delete on destroy.
 resource "stack_phone_home" "this" {
   install_id      = data.stack_config.this.install_id
-  phone_home_id   = var.phone_home_id
+  phone_home_url  = data.stack_config.this.phone_home_url
   phone_home_type = "gcp"
 
   # Keys match the GCPStackOutputs contract ctl-api decodes and the deploy

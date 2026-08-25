@@ -11,8 +11,6 @@ import (
 // legacy flow wrote to tfvars), so an install-stacks module can read it from the
 // API instead of receiving it as variables.
 type stackDataSourceModel struct {
-	PhoneHomeID types.String `tfsdk:"phone_home_id"`
-
 	InstallID    types.String `tfsdk:"install_id"`
 	OrgID        types.String `tfsdk:"org_id"`
 	AppID        types.String `tfsdk:"app_id"`
@@ -22,6 +20,8 @@ type stackDataSourceModel struct {
 	PhoneHomeURL types.String `tfsdk:"phone_home_url"`
 
 	InstallInputs       map[string]string   `tfsdk:"install_inputs"`
+	RequiredInputNames  []string            `tfsdk:"required_input_names"`
+	SensitiveInputNames []string            `tfsdk:"sensitive_input_names"`
 	AutoGenerateSecrets []string            `tfsdk:"auto_generate_secrets"`
 	Secrets             map[string]secretTF `tfsdk:"secrets"`
 
@@ -94,8 +94,9 @@ type awsTF struct {
 	CustomRoles     map[string]awsRoleTF `tfsdk:"custom_roles"`
 }
 
-// flattenConfig copies the fetched SDK config onto the data source model,
-// preserving the caller-supplied phone_home_id.
+// flattenConfig copies the fetched SDK config onto the data source model. install_id
+// is the caller's input and is echoed back from the response, which the control plane
+// resolves to the same value.
 func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 	data.InstallID = types.StringValue(cfg.InstallID)
 	data.OrgID = types.StringValue(cfg.OrgID)
@@ -109,6 +110,8 @@ func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 	// length()/for_each on them without coalescing — matching the contract the
 	// legacy tfvars flow provided via variable defaults.
 	data.InstallInputs = orEmptyMap(cfg.InstallInputs)
+	data.RequiredInputNames = orEmptySlice(cfg.RequiredInputs)
+	data.SensitiveInputNames = orEmptySlice(cfg.SensitiveInputs)
 	data.AutoGenerateSecrets = orEmptySlice(cfg.AutoGenerateSecrets)
 
 	data.Secrets = make(map[string]secretTF, len(cfg.Secrets))
