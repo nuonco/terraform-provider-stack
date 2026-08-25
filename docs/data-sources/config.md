@@ -42,6 +42,7 @@ output "install_id" {
 - `install_inputs` (Map of String) Customer install-input values.
 - `org_id` (String) Nuon organization ID.
 - `phone_home_url` (String) Phone-home URL the module reports run completion to.
+- `required_input_names` (List of String) Names of the entries in `install_inputs` the app declares required.
 - `runner_api_url` (String) Runner API URL the runner reports to.
 - `runner_id` (String) Runner ID for this install.
 - `secrets` (Attributes Map, Sensitive) Customer-supplied secrets, keyed by name. (see [below for nested schema](#nestedatt--secrets))

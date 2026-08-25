@@ -78,6 +78,14 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				ElementType:         types.StringType,
 				MarkdownDescription: "Customer install-input values.",
 			},
+			"required_input_names": schema.ListAttribute{
+				Computed:    true,
+				ElementType: types.StringType,
+				// Names, for the same reason sensitive_input_names is: install_inputs
+				// carries no per-key metadata. The module uses these to fail the plan
+				// when a required input resolves to an empty value.
+				MarkdownDescription: "Names of the entries in `install_inputs` the app declares required.",
+			},
 			"sensitive_input_names": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
