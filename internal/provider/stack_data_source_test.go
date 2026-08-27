@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	stack "github.com/nuonco/nuon/sdks/stack"
+	"github.com/nuonco/nuon/sdks/stack/models"
 )
 
 func TestStackDataSourceSchema(t *testing.T) {
@@ -23,25 +23,25 @@ func TestStackDataSourceSchema(t *testing.T) {
 }
 
 func TestFlattenConfigGCP(t *testing.T) {
-	cfg := &stack.Config{
+	cfg := &models.AppInstallerSDKConfig{
 		InstallID:     "inst123",
 		OrgID:         "org123",
 		AppID:         "app123",
-		Cloud:         stack.CloudGCP,
+		Cloud:         "gcp",
 		RunnerID:      "runner123",
 		RunnerAPIURL:  "https://runner.example.com",
 		PhoneHomeURL:  "https://api.example.com/v1/installs/inst123/phone-home/ph123",
 		InstallInputs: map[string]string{"domain": "example.com"},
-		Secrets: map[string]stack.SecretInput{
+		Secrets: map[string]models.AppInstallerSDKSecret{
 			"db_password": {Description: "db", Required: true, Value: "hunter2"},
 		},
-		GCP: &stack.GCPConfig{
+		Gcp: &models.AppInstallerSDKGCPConfig{
 			ProjectID:            "my-project",
 			Region:               "us-central1",
 			RunnerInitScriptURL:  "https://init.sh",
 			RunnerAPIToken:       "tok",
 			ProvisionPermissions: []string{"compute.instances.create"},
-			CustomRoles: map[string]stack.GCPRole{
+			CustomRoles: map[string]models.AppInstallerSDKGCPRole{
 				"extra": {Permissions: []string{"storage.buckets.get"}, Enabled: true},
 			},
 		},
@@ -80,10 +80,10 @@ func TestFlattenConfigGCP(t *testing.T) {
 // fail: that is the state a first apply is in, and the module fills the gap from
 // its own project_id/region variables.
 func TestFlattenConfigGCPNoTarget(t *testing.T) {
-	cfg := &stack.Config{
+	cfg := &models.AppInstallerSDKConfig{
 		InstallID: "inst123",
-		Cloud:     stack.CloudGCP,
-		GCP:       &stack.GCPConfig{RunnerInitScriptURL: "https://init.sh"},
+		Cloud:     "gcp",
+		Gcp:       &models.AppInstallerSDKGCPConfig{RunnerInitScriptURL: "https://init.sh"},
 	}
 
 	var data stackDataSourceModel
@@ -98,24 +98,24 @@ func TestFlattenConfigGCPNoTarget(t *testing.T) {
 }
 
 func TestFlattenConfigAWS(t *testing.T) {
-	cfg := &stack.Config{
+	cfg := &models.AppInstallerSDKConfig{
 		InstallID:     "inst123",
 		OrgID:         "org123",
 		AppID:         "app123",
-		Cloud:         stack.CloudAWS,
+		Cloud:         "aws",
 		RunnerID:      "runner123",
 		RunnerAPIURL:  "https://runner.example.com",
 		PhoneHomeURL:  "https://api.example.com/v1/installs/inst123/phone-home/ph123",
 		InstallInputs: map[string]string{"domain": "example.com"},
-		Secrets: map[string]stack.SecretInput{
+		Secrets: map[string]models.AppInstallerSDKSecret{
 			"db_password": {Description: "db", Required: true, Value: "hunter2"},
 		},
-		AWS: &stack.AWSConfig{
+		Aws: &models.AppInstallerSDKAWSConfig{
 			Region:                 "us-east-1",
 			ClusterName:            "inst123",
-			NuonSupportIAMRoleARNs: []string{"arn:aws:iam::123:role/nuon"},
+			NuonSupportIamRoleArns: []string{"arn:aws:iam::123:role/nuon"},
 			ProvisionPermissions:   []string{"s3:GetObject"},
-			CustomRoles: map[string]stack.RoleConfig{
+			CustomRoles: map[string]models.AppInstallerSDKRoleConfig{
 				"extra": {Permissions: []string{"ec2:DescribeInstances"}, Enabled: true},
 			},
 		},
@@ -150,11 +150,11 @@ func TestFlattenConfigAWS(t *testing.T) {
 // install_inputs is a released map[string]string with no room for per-key metadata,
 // so sensitivity arrives as a sibling name list the module can act on.
 func TestFlattenConfigSensitiveInputNames(t *testing.T) {
-	cfg := &stack.Config{
-		Cloud:           stack.CloudAWS,
+	cfg := &models.AppInstallerSDKConfig{
+		Cloud:           "aws",
 		InstallInputs:   map[string]string{"domain": "example.com", "api_key": "secret"},
 		SensitiveInputs: []string{"api_key"},
-		AWS:             &stack.AWSConfig{Region: "us-west-2"},
+		Aws:             &models.AppInstallerSDKAWSConfig{Region: "us-west-2"},
 	}
 
 	var data stackDataSourceModel
@@ -171,7 +171,7 @@ func TestFlattenConfigSensitiveInputNames(t *testing.T) {
 // Never null: modules call length()/for_each on it without coalescing.
 func TestFlattenConfigSensitiveInputNamesEmpty(t *testing.T) {
 	var data stackDataSourceModel
-	flattenConfig(&data, &stack.Config{Cloud: stack.CloudAWS})
+	flattenConfig(&data, &models.AppInstallerSDKConfig{Cloud: "aws"})
 	if data.SensitiveInputNames == nil {
 		t.Error("sensitive_input_names must be empty, not null")
 	}
