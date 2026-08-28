@@ -37,6 +37,7 @@ output "install_id" {
 - `app_id` (String) Nuon application ID.
 - `auto_generate_secrets` (List of String) Names of secrets the stack should auto-generate.
 - `aws` (Attributes) AWS-specific configuration. Present when cloud is aws. (see [below for nested schema](#nestedatt--aws))
+- `azure` (Attributes) Azure-specific configuration. Present when cloud is azure. (see [below for nested schema](#nestedatt--azure))
 - `cloud` (String) Target cloud (aws or gcp).
 - `gcp` (Attributes) GCP-specific configuration. Present when cloud is gcp. (see [below for nested schema](#nestedatt--gcp))
 - `install_inputs` (Map of String) Customer install-input values.
@@ -89,6 +90,47 @@ Read-Only:
 - `inline_policy_document` (String) JSON IAM policy document attached as an inline policy. Takes precedence over permissions.
 - `managed_policy_arns` (List of String) Managed policy ARNs to attach to the role.
 - `permissions` (List of String) IAM action strings granted via an inline policy.
+
+
+
+<a id="nestedatt--azure"></a>
+### Nested Schema for `azure`
+
+Read-Only:
+
+- `break_glass_roles` (Attributes Map) Break-glass roles, keyed by name. (see [below for nested schema](#nestedatt--azure--break_glass_roles))
+- `container_image_tag` (String) Runner container image tag.
+- `container_image_url` (String) Runner container image URL, written as the runner's initial image config. There is no runner API token: the Azure runner authenticates as its own managed identity.
+- `custom_roles` (Attributes Map) Customer-defined roles, keyed by name. (see [below for nested schema](#nestedatt--azure--custom_roles))
+- `deprovision_actions` (List of String) Deprovision identity actions.
+- `deprovision_built_in_roles` (List of String) Deprovision identity built-in role GUIDs.
+- `location` (String) Azure location the stack is provisioned into.
+- `maintenance_actions` (List of String) Maintenance identity actions.
+- `maintenance_built_in_roles` (List of String) Maintenance identity built-in role GUIDs.
+- `provision_actions` (List of String) Provision identity actions, granted via a custom role definition.
+- `provision_built_in_roles` (List of String) Provision identity built-in role GUIDs.
+- `runner_vm_size` (String) VM size for the runner scale set.
+- `subscription_id` (String) Subscription the install belongs to. The module compares this against the azurerm provider's own subscription.
+- `subscription_tenant_id` (String) Tenant the subscription belongs to.
+
+<a id="nestedatt--azure--break_glass_roles"></a>
+### Nested Schema for `azure.break_glass_roles`
+
+Read-Only:
+
+- `actions` (List of String) Azure action strings granted via a custom role definition.
+- `built_in_roles` (List of String) Built-in role GUIDs assigned directly. Already resolved from names by the control plane.
+- `enabled` (Boolean) Whether the role should be created.
+
+
+<a id="nestedatt--azure--custom_roles"></a>
+### Nested Schema for `azure.custom_roles`
+
+Read-Only:
+
+- `actions` (List of String) Azure action strings granted via a custom role definition.
+- `built_in_roles` (List of String) Built-in role GUIDs assigned directly. Already resolved from names by the control plane.
+- `enabled` (Boolean) Whether the role should be created.
 
 
 

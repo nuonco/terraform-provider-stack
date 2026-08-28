@@ -5,7 +5,7 @@ go 1.25.8
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.25.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
-	github.com/nuonco/nuon/sdks/stack v0.0.0-20260828004349-76fa388c38aa
+	github.com/nuonco/nuon/sdks/stack v0.0.0-20260828181622-de3841acdd17
 )
 
 require (
@@ -75,7 +75,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/nuonco/nuon/sdks/auth v0.0.0-20260828004349-76fa388c38aa // indirect
+	github.com/nuonco/nuon/sdks/auth v0.0.0-20260828181622-de3841acdd17 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/posener/complete v1.2.3 // indirect

@@ -58,6 +58,12 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 		"enabled":                schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the role should be created."},
 	}
 
+	azureRoleAttrs := map[string]schema.Attribute{
+		"actions":        schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Azure action strings granted via a custom role definition."},
+		"built_in_roles": schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Built-in role GUIDs assigned directly. Already resolved from names by the control plane."},
+		"enabled":        schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether the role should be created."},
+	}
+
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Reads a Nuon install stack's rendered configuration (runner, permissions, inputs, secrets) from the control plane. Intended for use inside install-stacks modules so the config is read from the API rather than passed in as tfvars.",
 		Attributes: map[string]schema.Attribute{
@@ -144,6 +150,38 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 						Computed:            true,
 						MarkdownDescription: "Customer-defined roles, keyed by name.",
 						NestedObject:        schema.NestedAttributeObject{Attributes: roleAttrs},
+					},
+				},
+			},
+
+			"azure": schema.SingleNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "Azure-specific configuration. Present when cloud is azure.",
+				Attributes: map[string]schema.Attribute{
+					"location":               schema.StringAttribute{Computed: true, MarkdownDescription: "Azure location the stack is provisioned into."},
+					"subscription_id":        schema.StringAttribute{Computed: true, MarkdownDescription: "Subscription the install belongs to. The module compares this against the azurerm provider's own subscription."},
+					"subscription_tenant_id": schema.StringAttribute{Computed: true, MarkdownDescription: "Tenant the subscription belongs to."},
+
+					"runner_vm_size":      schema.StringAttribute{Computed: true, MarkdownDescription: "VM size for the runner scale set."},
+					"container_image_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image URL, written as the runner's initial image config. There is no runner API token: the Azure runner authenticates as its own managed identity."},
+					"container_image_tag": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image tag."},
+
+					"provision_actions":          schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision identity actions, granted via a custom role definition."},
+					"provision_built_in_roles":   schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision identity built-in role GUIDs."},
+					"maintenance_actions":        schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Maintenance identity actions."},
+					"maintenance_built_in_roles": schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Maintenance identity built-in role GUIDs."},
+					"deprovision_actions":        schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Deprovision identity actions."},
+					"deprovision_built_in_roles": schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Deprovision identity built-in role GUIDs."},
+
+					"break_glass_roles": schema.MapNestedAttribute{
+						Computed:            true,
+						MarkdownDescription: "Break-glass roles, keyed by name.",
+						NestedObject:        schema.NestedAttributeObject{Attributes: azureRoleAttrs},
+					},
+					"custom_roles": schema.MapNestedAttribute{
+						Computed:            true,
+						MarkdownDescription: "Customer-defined roles, keyed by name.",
+						NestedObject:        schema.NestedAttributeObject{Attributes: azureRoleAttrs},
 					},
 				},
 			},
