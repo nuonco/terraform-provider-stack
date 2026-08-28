@@ -3,7 +3,7 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	stack "github.com/nuonco/nuon/sdks/stack"
+	"github.com/nuonco/nuon/sdks/stack/models"
 )
 
 // stackDataSourceModel is the Terraform shape for the stack_config data source. It
@@ -105,7 +105,7 @@ type awsTF struct {
 // flattenConfig copies the fetched SDK config onto the data source model. install_id
 // is the caller's input and is echoed back from the response, which the control plane
 // resolves to the same value.
-func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
+func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig) {
 	data.InstallID = types.StringValue(cfg.InstallID)
 	data.OrgID = types.StringValue(cfg.OrgID)
 	data.AppID = types.StringValue(cfg.AppID)
@@ -131,48 +131,48 @@ func flattenConfig(data *stackDataSourceModel, cfg *stack.Config) {
 		}
 	}
 
-	if cfg.GCP != nil {
-		data.GCP = flattenGCP(cfg.GCP)
+	if cfg.Gcp != nil {
+		data.GCP = flattenGCP(cfg.Gcp)
 	}
-	if cfg.AWS != nil {
-		data.AWS = flattenAWS(cfg.AWS)
+	if cfg.Aws != nil {
+		data.AWS = flattenAWS(cfg.Aws)
 	}
 }
 
-func flattenAWS(a *stack.AWSConfig) *awsTF {
+func flattenAWS(a *models.AppInstallerSDKAWSConfig) *awsTF {
 	return &awsTF{
 		Region:                          a.Region,
 		ClusterName:                     a.ClusterName,
 		RunnerMachineType:               a.RunnerMachineType,
-		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIAMRoleARNs),
+		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIamRoleArns),
 		ProvisionPermissions:            orEmptySlice(a.ProvisionPermissions),
 		ProvisionInlinePolicyDocument:   a.ProvisionInlinePolicyDocument,
-		ProvisionManagedPolicyARNs:      orEmptySlice(a.ProvisionManagedPolicyARNs),
+		ProvisionManagedPolicyARNs:      orEmptySlice(a.ProvisionManagedPolicyArns),
 		MaintenancePermissions:          orEmptySlice(a.MaintenancePermissions),
 		MaintenanceInlinePolicyDocument: a.MaintenanceInlinePolicyDocument,
-		MaintenanceManagedPolicyARNs:    orEmptySlice(a.MaintenanceManagedPolicyARNs),
+		MaintenanceManagedPolicyARNs:    orEmptySlice(a.MaintenanceManagedPolicyArns),
 		DeprovisionPermissions:          orEmptySlice(a.DeprovisionPermissions),
 		DeprovisionInlinePolicyDocument: a.DeprovisionInlinePolicyDocument,
-		DeprovisionManagedPolicyARNs:    orEmptySlice(a.DeprovisionManagedPolicyARNs),
+		DeprovisionManagedPolicyARNs:    orEmptySlice(a.DeprovisionManagedPolicyArns),
 		BreakGlassRoles:                 flattenAWSRoles(a.BreakGlassRoles),
 		CustomRoles:                     flattenAWSRoles(a.CustomRoles),
 	}
 }
 
-func flattenAWSRoles(in map[string]stack.RoleConfig) map[string]awsRoleTF {
+func flattenAWSRoles(in map[string]models.AppInstallerSDKRoleConfig) map[string]awsRoleTF {
 	out := make(map[string]awsRoleTF, len(in))
 	for name, r := range in {
 		out[name] = awsRoleTF{
 			Permissions:          orEmptySlice(r.Permissions),
 			InlinePolicyDocument: r.InlinePolicyDocument,
-			ManagedPolicyARNs:    orEmptySlice(r.ManagedPolicyARNs),
+			ManagedPolicyARNs:    orEmptySlice(r.ManagedPolicyArns),
 			Enabled:              r.Enabled,
 		}
 	}
 	return out
 }
 
-func flattenGCP(g *stack.GCPConfig) *gcpTF {
+func flattenGCP(g *models.AppInstallerSDKGCPConfig) *gcpTF {
 	return &gcpTF{
 		ProjectID:                 g.ProjectID,
 		Region:                    g.Region,
@@ -193,7 +193,7 @@ func flattenGCP(g *stack.GCPConfig) *gcpTF {
 	}
 }
 
-func flattenGCPRoles(in map[string]stack.GCPRole) map[string]gcpRoleTF {
+func flattenGCPRoles(in map[string]models.AppInstallerSDKGCPRole) map[string]gcpRoleTF {
 	out := make(map[string]gcpRoleTF, len(in))
 	for name, r := range in {
 		out[name] = gcpRoleTF{
