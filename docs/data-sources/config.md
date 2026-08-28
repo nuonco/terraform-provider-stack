@@ -105,9 +105,11 @@ Read-Only:
 - `maintenance_permissions` (List of String) Maintenance service-account permissions.
 - `maintenance_policies` (Map of List of String) Per-policy maintenance custom roles (policy name → permissions).
 - `maintenance_predefined_role` (String) Maintenance predefined role, if any.
+- `project_id` (String) GCP project the stack is provisioned into. Empty until the install has a recorded project, so the module's `project_id` variable can supply it on a first apply.
 - `provision_permissions` (List of String) Provision service-account permissions.
 - `provision_policies` (Map of List of String) Per-policy provision custom roles (policy name → permissions).
 - `provision_predefined_role` (String) Provision predefined role, if any.
+- `region` (String) GCP region the stack is provisioned into. Empty until the install has a recorded region, so the module's `region` variable can supply it on a first apply.
 - `runner_api_token` (String, Sensitive) Runner API token.
 - `runner_init_script_url` (String) Runner bootstrap script URL.
 - `runner_machine_type` (String) GCE machine type for the runner instance.
