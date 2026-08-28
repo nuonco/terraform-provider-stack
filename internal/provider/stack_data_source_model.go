@@ -25,8 +25,9 @@ type stackDataSourceModel struct {
 	AutoGenerateSecrets []string            `tfsdk:"auto_generate_secrets"`
 	Secrets             map[string]secretTF `tfsdk:"secrets"`
 
-	GCP *gcpTF `tfsdk:"gcp"`
-	AWS *awsTF `tfsdk:"aws"`
+	GCP   *gcpTF   `tfsdk:"gcp"`
+	AWS   *awsTF   `tfsdk:"aws"`
+	Azure *azureTF `tfsdk:"azure"`
 }
 
 // secretTF mirrors the module's secrets map(object) element.
@@ -71,6 +72,42 @@ type gcpTF struct {
 
 	BreakGlassRoles map[string]gcpRoleTF `tfsdk:"break_glass_roles"`
 	CustomRoles     map[string]gcpRoleTF `tfsdk:"custom_roles"`
+}
+
+// azureRoleTF mirrors the module's break_glass_roles / custom_roles element.
+type azureRoleTF struct {
+	Actions      []string `tfsdk:"actions"`
+	BuiltInRoles []string `tfsdk:"built_in_roles"`
+	Enabled      bool     `tfsdk:"enabled"`
+}
+
+// azureTF carries the Azure-specific install-stack config.
+//
+// Azure grants come on two axes because the module treats them differently:
+// actions become a subscription-scoped custom role definition, built-in roles
+// become assignments at resource-group scope. Built-in roles arrive as GUIDs,
+// already resolved from names by the control plane, because the module builds a
+// role definition ID from the value verbatim.
+type azureTF struct {
+	Location             string `tfsdk:"location"`
+	SubscriptionID       string `tfsdk:"subscription_id"`
+	SubscriptionTenantID string `tfsdk:"subscription_tenant_id"`
+
+	// No runner API token, unlike GCP: the Azure runner authenticates as its own
+	// managed identity, so it needs the image to run rather than a credential.
+	RunnerVMSize      string `tfsdk:"runner_vm_size"`
+	ContainerImageURL string `tfsdk:"container_image_url"`
+	ContainerImageTag string `tfsdk:"container_image_tag"`
+
+	ProvisionActions        []string `tfsdk:"provision_actions"`
+	ProvisionBuiltInRoles   []string `tfsdk:"provision_built_in_roles"`
+	MaintenanceActions      []string `tfsdk:"maintenance_actions"`
+	MaintenanceBuiltInRoles []string `tfsdk:"maintenance_built_in_roles"`
+	DeprovisionActions      []string `tfsdk:"deprovision_actions"`
+	DeprovisionBuiltInRoles []string `tfsdk:"deprovision_built_in_roles"`
+
+	BreakGlassRoles map[string]azureRoleTF `tfsdk:"break_glass_roles"`
+	CustomRoles     map[string]azureRoleTF `tfsdk:"custom_roles"`
 }
 
 // awsRoleTF mirrors the module's break_glass_roles / custom_roles element.
@@ -137,6 +174,9 @@ func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig
 	if cfg.Aws != nil {
 		data.AWS = flattenAWS(cfg.Aws)
 	}
+	if cfg.Azure != nil {
+		data.Azure = flattenAzure(cfg.Azure)
+	}
 }
 
 func flattenAWS(a *models.AppInstallerSDKAWSConfig) *awsTF {
@@ -201,6 +241,37 @@ func flattenGCPRoles(in map[string]models.AppInstallerSDKGCPRole) map[string]gcp
 			Policies:       orEmptyMapList(r.Policies),
 			PredefinedRole: r.PredefinedRole,
 			Enabled:        r.Enabled,
+		}
+	}
+	return out
+}
+
+func flattenAzure(a *models.AppInstallerSDKAzureConfig) *azureTF {
+	return &azureTF{
+		Location:                a.Location,
+		SubscriptionID:          a.SubscriptionID,
+		SubscriptionTenantID:    a.SubscriptionTenantID,
+		RunnerVMSize:            a.RunnerVMSize,
+		ContainerImageURL:       a.ContainerImageURL,
+		ContainerImageTag:       a.ContainerImageTag,
+		ProvisionActions:        orEmptySlice(a.ProvisionActions),
+		ProvisionBuiltInRoles:   orEmptySlice(a.ProvisionBuiltInRoles),
+		MaintenanceActions:      orEmptySlice(a.MaintenanceActions),
+		MaintenanceBuiltInRoles: orEmptySlice(a.MaintenanceBuiltInRoles),
+		DeprovisionActions:      orEmptySlice(a.DeprovisionActions),
+		DeprovisionBuiltInRoles: orEmptySlice(a.DeprovisionBuiltInRoles),
+		BreakGlassRoles:         flattenAzureRoles(a.BreakGlassRoles),
+		CustomRoles:             flattenAzureRoles(a.CustomRoles),
+	}
+}
+
+func flattenAzureRoles(in map[string]models.AppInstallerSDKAzureRole) map[string]azureRoleTF {
+	out := make(map[string]azureRoleTF, len(in))
+	for name, r := range in {
+		out[name] = azureRoleTF{
+			Actions:      orEmptySlice(r.Actions),
+			BuiltInRoles: orEmptySlice(r.BuiltInRoles),
+			Enabled:      r.Enabled,
 		}
 	}
 	return out
