@@ -11,23 +11,36 @@ import (
 // legacy flow wrote to tfvars), so an install-stacks module can read it from the
 // API instead of receiving it as variables.
 type stackDataSourceModel struct {
-	InstallID    types.String `tfsdk:"install_id"`
-	OrgID        types.String `tfsdk:"org_id"`
-	AppID        types.String `tfsdk:"app_id"`
-	Cloud        types.String `tfsdk:"cloud"`
-	RunnerID     types.String `tfsdk:"runner_id"`
-	RunnerAPIURL types.String `tfsdk:"runner_api_url"`
-	PhoneHomeURL types.String `tfsdk:"phone_home_url"`
+	InstallID               types.String `tfsdk:"install_id"`
+	OrgID                   types.String `tfsdk:"org_id"`
+	AppID                   types.String `tfsdk:"app_id"`
+	Cloud                   types.String `tfsdk:"cloud"`
+	RunnerID                types.String `tfsdk:"runner_id"`
+	RunnerAPIURL            types.String `tfsdk:"runner_api_url"`
+	PhoneHomeURL            types.String `tfsdk:"phone_home_url"`
+	CustomStacksTemplateURL types.String `tfsdk:"custom_stacks_template_url"`
 
 	InstallInputs       map[string]string   `tfsdk:"install_inputs"`
 	RequiredInputNames  []string            `tfsdk:"required_input_names"`
 	SensitiveInputNames []string            `tfsdk:"sensitive_input_names"`
 	AutoGenerateSecrets []string            `tfsdk:"auto_generate_secrets"`
 	Secrets             map[string]secretTF `tfsdk:"secrets"`
+	CustomStacks        []customStackTF     `tfsdk:"custom_stacks"`
 
 	GCP   *gcpTF   `tfsdk:"gcp"`
 	AWS   *awsTF   `tfsdk:"aws"`
 	Azure *azureTF `tfsdk:"azure"`
+}
+
+// customStackTF mirrors the module's custom_stacks list(object) element.
+// Order matches the control plane's Index-sorted deployment sequence.
+type customStackTF struct {
+	Name            string            `tfsdk:"name"`
+	Index           int64             `tfsdk:"index"`
+	Parameters      map[string]string `tfsdk:"parameters"`
+	Module          string            `tfsdk:"module"`
+	Outputs         map[string]string `tfsdk:"outputs"`
+	InputParameters map[string]string `tfsdk:"input_parameters"`
 }
 
 // secretTF mirrors the module's secrets map(object) element.
@@ -150,6 +163,7 @@ func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig
 	data.RunnerID = types.StringValue(cfg.RunnerID)
 	data.RunnerAPIURL = types.StringValue(cfg.RunnerAPIURL)
 	data.PhoneHomeURL = types.StringValue(cfg.PhoneHomeURL)
+	data.CustomStacksTemplateURL = types.StringValue(cfg.CustomStacksTemplateURL)
 
 	// Collections are emitted as empty (never null) so module authors can call
 	// length()/for_each on them without coalescing — matching the contract the
@@ -158,6 +172,7 @@ func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig
 	data.RequiredInputNames = orEmptySlice(cfg.RequiredInputs)
 	data.SensitiveInputNames = orEmptySlice(cfg.SensitiveInputs)
 	data.AutoGenerateSecrets = orEmptySlice(cfg.AutoGenerateSecrets)
+	data.CustomStacks = flattenCustomStacks(cfg.CustomStacks)
 
 	data.Secrets = make(map[string]secretTF, len(cfg.Secrets))
 	for name, s := range cfg.Secrets {
@@ -177,6 +192,24 @@ func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig
 	if cfg.Azure != nil {
 		data.Azure = flattenAzure(cfg.Azure)
 	}
+}
+
+func flattenCustomStacks(in []*models.AppInstallerSDKCustomStack) []customStackTF {
+	out := make([]customStackTF, 0, len(in))
+	for _, cs := range in {
+		if cs == nil {
+			continue
+		}
+		out = append(out, customStackTF{
+			Name:            cs.Name,
+			Index:           cs.Index,
+			Parameters:      orEmptyMap(cs.Parameters),
+			Module:          cs.Module,
+			Outputs:         orEmptyMap(cs.Outputs),
+			InputParameters: orEmptyMap(cs.InputParameters),
+		})
+	}
+	return out
 }
 
 func flattenAWS(a *models.AppInstallerSDKAWSConfig) *awsTF {

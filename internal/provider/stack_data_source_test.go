@@ -176,3 +176,81 @@ func TestFlattenConfigSensitiveInputNamesEmpty(t *testing.T) {
 		t.Error("sensitive_input_names must be empty, not null")
 	}
 }
+
+func TestFlattenConfigCustomStacks(t *testing.T) {
+	cfg := &models.AppInstallerSDKConfig{
+		Cloud: "gcp",
+		Aws:   nil,
+		Gcp:   &models.AppInstallerSDKGCPConfig{},
+		CustomStacks: []*models.AppInstallerSDKCustomStack{
+			{Name: "bucket", Index: 0, Module: "bucket", Parameters: map[string]string{"name": "assets"}, Outputs: map[string]string{"BucketName": "BucketBucketName"}, InputParameters: map[string]string{"BucketNameParam": "name"}},
+			{Name: "topic", Index: 1, Module: "pubsub-topic"},
+		},
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if len(data.CustomStacks) != 2 {
+		t.Fatalf("custom_stacks = %+v", data.CustomStacks)
+	}
+	if data.CustomStacks[0].Name != "bucket" || data.CustomStacks[0].Module != "bucket" {
+		t.Errorf("custom_stacks[0] = %+v", data.CustomStacks[0])
+	}
+	if data.CustomStacks[0].Parameters["name"] != "assets" {
+		t.Errorf("custom_stacks[0].parameters = %+v", data.CustomStacks[0].Parameters)
+	}
+	if data.CustomStacks[0].Outputs["BucketName"] != "BucketBucketName" {
+		t.Errorf("custom_stacks[0].outputs = %+v", data.CustomStacks[0].Outputs)
+	}
+	if data.CustomStacks[0].InputParameters["BucketNameParam"] != "name" {
+		t.Errorf("custom_stacks[0].input_parameters = %+v", data.CustomStacks[0].InputParameters)
+	}
+	if data.CustomStacks[1].Index != 1 {
+		t.Errorf("custom_stacks[1].index = %d", data.CustomStacks[1].Index)
+	}
+	// Deployment order must be preserved as the SDK returns it, not resorted.
+	if data.CustomStacks[1].Parameters == nil {
+		t.Errorf("custom_stacks[1].parameters must be empty map, not nil")
+	}
+	if data.CustomStacks[1].Outputs == nil {
+		t.Errorf("custom_stacks[1].outputs must be empty map, not nil")
+	}
+	if data.CustomStacks[1].InputParameters == nil {
+		t.Errorf("custom_stacks[1].input_parameters must be empty map, not nil")
+	}
+}
+
+func TestFlattenConfigCustomStacksEmpty(t *testing.T) {
+	var data stackDataSourceModel
+	flattenConfig(&data, &models.AppInstallerSDKConfig{Cloud: "aws", Aws: &models.AppInstallerSDKAWSConfig{Region: "us-west-2"}})
+	if data.CustomStacks == nil {
+		t.Error("custom_stacks must be empty, not null")
+	}
+	if len(data.CustomStacks) != 0 {
+		t.Errorf("custom_stacks = %+v", data.CustomStacks)
+	}
+}
+
+func TestFlattenConfigCustomStacksTemplateURL(t *testing.T) {
+	cfg := &models.AppInstallerSDKConfig{
+		Cloud:                   "aws",
+		Aws:                     &models.AppInstallerSDKAWSConfig{Region: "us-west-2"},
+		CustomStacksTemplateURL: "https://s3.example.com/custom-stacks/inst123.yaml",
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if data.CustomStacksTemplateURL.ValueString() != "https://s3.example.com/custom-stacks/inst123.yaml" {
+		t.Errorf("custom_stacks_template_url = %q", data.CustomStacksTemplateURL.ValueString())
+	}
+}
+
+func TestFlattenConfigCustomStacksTemplateURLEmpty(t *testing.T) {
+	var data stackDataSourceModel
+	flattenConfig(&data, &models.AppInstallerSDKConfig{Cloud: "gcp", Gcp: &models.AppInstallerSDKGCPConfig{}})
+	if data.CustomStacksTemplateURL.ValueString() != "" {
+		t.Errorf("custom_stacks_template_url = %q, want empty", data.CustomStacksTemplateURL.ValueString())
+	}
+}
