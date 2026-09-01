@@ -106,6 +106,23 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				ElementType:         types.StringType,
 				MarkdownDescription: "Names of secrets the stack should auto-generate.",
 			},
+			"custom_stacks": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "Vendor-defined custom stacks, install-override-merged and parameter-rendered, in deployment order.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name":             schema.StringAttribute{Computed: true, MarkdownDescription: "Raw config name, not a sanitized logical ID — it keys the phone-home payload."},
+						"index":            schema.Int64Attribute{Computed: true, MarkdownDescription: "Deployment sequence index."},
+						"parameters":       schema.MapAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Rendered parameters passed to the stack."},
+						"module":           schema.StringAttribute{Computed: true, MarkdownDescription: "Curated gcp-terraform module name. Empty for aws-cloudformation and azure-bicep stacks."},
+						"outputs":          schema.MapAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Maps each output key the stack's template declares to the flat top-level output name the generated custom-stacks template emits for it."},
+						"input_parameters": schema.MapAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Maps each top-level template parameter name to the install input name whose current value should be passed for it."},
+					},
+				},
+			},
+
+			"custom_stacks_template_url": schema.StringAttribute{Computed: true, MarkdownDescription: "URL of the generated template containing only the install's custom nested stacks. Empty when the install declares no custom stacks."},
+
 			"secrets": schema.MapNestedAttribute{
 				Computed:            true,
 				Sensitive:           true,
