@@ -74,7 +74,7 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 
 			"org_id":         schema.StringAttribute{Computed: true, MarkdownDescription: "Nuon organization ID."},
 			"app_id":         schema.StringAttribute{Computed: true, MarkdownDescription: "Nuon application ID."},
-			"cloud":          schema.StringAttribute{Computed: true, MarkdownDescription: "Target cloud (aws or gcp)."},
+			"cloud":          schema.StringAttribute{Computed: true, MarkdownDescription: "Target cloud (`aws`, `azure`, or `gcp`)."},
 			"runner_id":      schema.StringAttribute{Computed: true, MarkdownDescription: "Runner ID for this install."},
 			"runner_api_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner API URL the runner reports to."},
 			"phone_home_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Phone-home URL the module reports run completion to."},

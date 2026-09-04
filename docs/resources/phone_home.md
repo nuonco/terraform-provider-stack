@@ -38,7 +38,7 @@ resource "stack_phone_home" "this" {
 
 - `install_id` (String) Nuon install ID (URL path).
 - `payload` (String) The phone-home body as a JSON object string (typically `jsonencode({...})`). The provider injects `request_type`, `phone_home_type` and `inputs`; any values for those keys in the payload are overwritten.
-- `phone_home_type` (String) Target cloud for the report (`aws` or `gcp`). Merged into the payload as `phone_home_type`.
+- `phone_home_type` (String) Target cloud for the report (`aws`, `azure`, or `gcp`). Merged into the payload as `phone_home_type`.
 - `phone_home_url` (String) Phone-home endpoint for this stack version, read from `stack_config.phone_home_url`. Sourced from the API rather than configured by hand: it embeds a per-stack-version identifier the caller has no other way to know.
 
 ### Optional
