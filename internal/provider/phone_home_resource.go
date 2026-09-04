@@ -76,7 +76,7 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"phone_home_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Target cloud for the report (`aws` or `gcp`). Merged into the payload as `phone_home_type`.",
+				MarkdownDescription: "Target cloud for the report (`aws`, `azure`, or `gcp`). Merged into the payload as `phone_home_type`.",
 			},
 			"payload": schema.StringAttribute{
 				Required:            true,
