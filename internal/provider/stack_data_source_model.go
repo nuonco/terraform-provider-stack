@@ -109,9 +109,10 @@ type azureTF struct {
 
 	// No runner API token, unlike GCP: the Azure runner authenticates as its own
 	// managed identity, so it needs the image to run rather than a credential.
-	RunnerVMSize      string `tfsdk:"runner_vm_size"`
-	ContainerImageURL string `tfsdk:"container_image_url"`
-	ContainerImageTag string `tfsdk:"container_image_tag"`
+	RunnerVMSize         string `tfsdk:"runner_vm_size"`
+	ContainerImageURL    string `tfsdk:"container_image_url"`
+	VPCNestedTemplateURL string `tfsdk:"vpc_nested_template_url"`
+	ContainerImageTag    string `tfsdk:"container_image_tag"`
 
 	ProvisionActions        []string `tfsdk:"provision_actions"`
 	ProvisionBuiltInRoles   []string `tfsdk:"provision_built_in_roles"`
@@ -291,6 +292,7 @@ func flattenAzure(a *models.AppInstallerSDKAzureConfig) *azureTF {
 		RunnerVMSize:            a.RunnerVMSize,
 		ContainerImageURL:       a.ContainerImageURL,
 		ContainerImageTag:       a.ContainerImageTag,
+		VPCNestedTemplateURL:    a.VpcNestedTemplateURL,
 		ProvisionActions:        orEmptySlice(a.ProvisionActions),
 		ProvisionBuiltInRoles:   orEmptySlice(a.ProvisionBuiltInRoles),
 		MaintenanceActions:      orEmptySlice(a.MaintenanceActions),

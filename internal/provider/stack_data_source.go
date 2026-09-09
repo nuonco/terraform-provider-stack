@@ -181,9 +181,10 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 					"subscription_id":        schema.StringAttribute{Computed: true, MarkdownDescription: "Subscription the install belongs to. The module compares this against the azurerm provider's own subscription."},
 					"subscription_tenant_id": schema.StringAttribute{Computed: true, MarkdownDescription: "Tenant the subscription belongs to."},
 
-					"runner_vm_size":      schema.StringAttribute{Computed: true, MarkdownDescription: "VM size for the runner scale set."},
-					"container_image_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image URL, written as the runner's initial image config. There is no runner API token: the Azure runner authenticates as its own managed identity."},
-					"container_image_tag": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image tag."},
+					"runner_vm_size":          schema.StringAttribute{Computed: true, MarkdownDescription: "VM size for the runner scale set."},
+					"vpc_nested_template_url": schema.StringAttribute{Computed: true, MarkdownDescription: "ARM template the app declares for the install virtual network. Set when the vendor customised it, in which case the module deploys it instead of building its own network so resources their components depend on exist on both install paths. Empty means use the module's network."},
+					"container_image_url":     schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image URL, written as the runner's initial image config. There is no runner API token: the Azure runner authenticates as its own managed identity."},
+					"container_image_tag":     schema.StringAttribute{Computed: true, MarkdownDescription: "Runner container image tag."},
 
 					"provision_actions":          schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision identity actions, granted via a custom role definition."},
 					"provision_built_in_roles":   schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision identity built-in role GUIDs."},
