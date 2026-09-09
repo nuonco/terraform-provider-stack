@@ -92,6 +92,10 @@ func (r *phoneHomeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Sensitive:           true,
 				MarkdownDescription: "Install-input values this stack resolved, sent as the `inputs` object. The control plane merges them over the install's current inputs and makes the result the install's inputs, so a module's tfvars becomes a way to set input values. Every key must be a customer-source app input; anything else is rejected.",
 			},
+			"stack_version_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "ID of the stack version being reported, from `stack_config.stack_version_id`. Never sent in the body — it exists so that generating a new version changes this resource and Terraform re-reports. The authenticated phone-home URL is identical for every version, so without it an applied stack with a new version pending shows no diff and the install's await step waits forever.",
+			},
 		},
 	}
 }

@@ -123,6 +123,8 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 
 			"custom_stacks_template_url": schema.StringAttribute{Computed: true, MarkdownDescription: "URL of the generated template containing only the install's custom nested stacks. Empty when the install declares no custom stacks."},
 
+			"stack_version_id": schema.StringAttribute{Computed: true, MarkdownDescription: "ID of the install stack version this config was rendered for. Pass it to `stack_phone_home.stack_version_id` so a newly generated version is reported: the authenticated phone-home URL is the same for every version, so nothing else in the resource changes when one is generated."},
+
 			"secrets": schema.MapNestedAttribute{
 				Computed:            true,
 				Sensitive:           true,
@@ -210,6 +212,7 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 					"region":                     schema.StringAttribute{Computed: true, MarkdownDescription: "AWS region the stack is provisioned into."},
 					"cluster_name":               schema.StringAttribute{Computed: true, MarkdownDescription: "Resolved EKS cluster-name tag value."},
 					"runner_machine_type":        schema.StringAttribute{Computed: true, MarkdownDescription: "EC2 instance type for the runner host."},
+					"vpc_nested_template_url":    schema.StringAttribute{Computed: true, MarkdownDescription: "CloudFormation template the app declares for the install VPC. Set when the vendor customised it, in which case the module deploys it instead of building its own VPC so resources their components read back by tag exist on both install paths. Empty means use the module's VPC."},
 					"nuon_support_iam_role_arns": schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Nuon control-plane IAM role ARNs allowed to assume the operation roles."},
 
 					"provision_permissions":              schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision role inline-policy IAM actions."},
