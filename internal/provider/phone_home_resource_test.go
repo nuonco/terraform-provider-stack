@@ -84,3 +84,21 @@ func TestInputsFromMap(t *testing.T) {
 		t.Errorf("domain = %q", got["domain"])
 	}
 }
+
+// The authenticated phone-home URL is version-invariant, so stack_version_id is
+// the only thing that makes a newly generated version show up as a diff.
+func TestPhoneHomeSchemaTracksStackVersionID(t *testing.T) {
+	resp := &resource.SchemaResponse{}
+	NewPhoneHomeResource().Schema(context.Background(), resource.SchemaRequest{}, resp)
+
+	attr, ok := resp.Schema.Attributes["stack_version_id"]
+	if !ok {
+		t.Fatal("stack_version_id attribute missing from stack_phone_home schema")
+	}
+	if !attr.IsOptional() {
+		t.Error("stack_version_id must be optional so existing modules keep working")
+	}
+	if attr.IsComputed() {
+		t.Error("stack_version_id must not be computed, or a new version would not produce a diff")
+	}
+}

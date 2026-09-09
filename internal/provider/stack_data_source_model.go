@@ -19,6 +19,7 @@ type stackDataSourceModel struct {
 	RunnerAPIURL            types.String `tfsdk:"runner_api_url"`
 	PhoneHomeURL            types.String `tfsdk:"phone_home_url"`
 	CustomStacksTemplateURL types.String `tfsdk:"custom_stacks_template_url"`
+	StackVersionID          types.String `tfsdk:"stack_version_id"`
 
 	InstallInputs       map[string]string   `tfsdk:"install_inputs"`
 	RequiredInputNames  []string            `tfsdk:"required_input_names"`
@@ -136,6 +137,7 @@ type awsTF struct {
 	Region                 string   `tfsdk:"region"`
 	ClusterName            string   `tfsdk:"cluster_name"`
 	RunnerMachineType      string   `tfsdk:"runner_machine_type"`
+	VPCNestedTemplateURL   string   `tfsdk:"vpc_nested_template_url"`
 	NuonSupportIAMRoleARNs []string `tfsdk:"nuon_support_iam_role_arns"`
 
 	ProvisionPermissions            []string `tfsdk:"provision_permissions"`
@@ -164,6 +166,7 @@ func flattenConfig(data *stackDataSourceModel, cfg *models.AppInstallerSDKConfig
 	data.RunnerAPIURL = types.StringValue(cfg.RunnerAPIURL)
 	data.PhoneHomeURL = types.StringValue(cfg.PhoneHomeURL)
 	data.CustomStacksTemplateURL = types.StringValue(cfg.CustomStacksTemplateURL)
+	data.StackVersionID = types.StringValue(cfg.StackVersionID)
 
 	// Collections are emitted as empty (never null) so module authors can call
 	// length()/for_each on them without coalescing — matching the contract the
@@ -217,6 +220,7 @@ func flattenAWS(a *models.AppInstallerSDKAWSConfig) *awsTF {
 		Region:                          a.Region,
 		ClusterName:                     a.ClusterName,
 		RunnerMachineType:               a.RunnerMachineType,
+		VPCNestedTemplateURL:            a.VpcNestedTemplateURL,
 		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIamRoleArns),
 		ProvisionPermissions:            orEmptySlice(a.ProvisionPermissions),
 		ProvisionInlinePolicyDocument:   a.ProvisionInlinePolicyDocument,

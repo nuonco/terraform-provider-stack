@@ -13,4 +13,7 @@ type phoneHomeResourceModel struct {
 	PhoneHomeType types.String `tfsdk:"phone_home_type"`
 	Payload       types.String `tfsdk:"payload"`
 	Inputs        types.Map    `tfsdk:"inputs"`
+	// Not sent: the phone-home body treats every unrecognised key as a stack
+	// output. Tracked only so a new stack version produces a diff.
+	StackVersionID types.String `tfsdk:"stack_version_id"`
 }
