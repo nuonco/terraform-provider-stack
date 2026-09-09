@@ -109,10 +109,11 @@ type azureTF struct {
 
 	// No runner API token, unlike GCP: the Azure runner authenticates as its own
 	// managed identity, so it needs the image to run rather than a credential.
-	RunnerVMSize         string `tfsdk:"runner_vm_size"`
-	ContainerImageURL    string `tfsdk:"container_image_url"`
-	VPCNestedTemplateURL string `tfsdk:"vpc_nested_template_url"`
-	ContainerImageTag    string `tfsdk:"container_image_tag"`
+	RunnerVMSize            string `tfsdk:"runner_vm_size"`
+	ContainerImageURL       string `tfsdk:"container_image_url"`
+	VPCNestedTemplateURL    string `tfsdk:"vpc_nested_template_url"`
+	RunnerNestedTemplateURL string `tfsdk:"runner_nested_template_url"`
+	ContainerImageTag       string `tfsdk:"container_image_tag"`
 
 	ProvisionActions        []string `tfsdk:"provision_actions"`
 	ProvisionBuiltInRoles   []string `tfsdk:"provision_built_in_roles"`
@@ -135,11 +136,12 @@ type awsRoleTF struct {
 
 // awsTF carries the AWS-specific install-stack config.
 type awsTF struct {
-	Region                 string   `tfsdk:"region"`
-	ClusterName            string   `tfsdk:"cluster_name"`
-	RunnerMachineType      string   `tfsdk:"runner_machine_type"`
-	VPCNestedTemplateURL   string   `tfsdk:"vpc_nested_template_url"`
-	NuonSupportIAMRoleARNs []string `tfsdk:"nuon_support_iam_role_arns"`
+	Region                  string   `tfsdk:"region"`
+	ClusterName             string   `tfsdk:"cluster_name"`
+	RunnerMachineType       string   `tfsdk:"runner_machine_type"`
+	VPCNestedTemplateURL    string   `tfsdk:"vpc_nested_template_url"`
+	RunnerNestedTemplateURL string   `tfsdk:"runner_nested_template_url"`
+	NuonSupportIAMRoleARNs  []string `tfsdk:"nuon_support_iam_role_arns"`
 
 	ProvisionPermissions            []string `tfsdk:"provision_permissions"`
 	ProvisionInlinePolicyDocument   string   `tfsdk:"provision_inline_policy_document"`
@@ -222,6 +224,7 @@ func flattenAWS(a *models.AppInstallerSDKAWSConfig) *awsTF {
 		ClusterName:                     a.ClusterName,
 		RunnerMachineType:               a.RunnerMachineType,
 		VPCNestedTemplateURL:            a.VpcNestedTemplateURL,
+		RunnerNestedTemplateURL:         a.RunnerNestedTemplateURL,
 		NuonSupportIAMRoleARNs:          orEmptySlice(a.NuonSupportIamRoleArns),
 		ProvisionPermissions:            orEmptySlice(a.ProvisionPermissions),
 		ProvisionInlinePolicyDocument:   a.ProvisionInlinePolicyDocument,
@@ -293,6 +296,7 @@ func flattenAzure(a *models.AppInstallerSDKAzureConfig) *azureTF {
 		ContainerImageURL:       a.ContainerImageURL,
 		ContainerImageTag:       a.ContainerImageTag,
 		VPCNestedTemplateURL:    a.VpcNestedTemplateURL,
+		RunnerNestedTemplateURL: a.RunnerNestedTemplateURL,
 		ProvisionActions:        orEmptySlice(a.ProvisionActions),
 		ProvisionBuiltInRoles:   orEmptySlice(a.ProvisionBuiltInRoles),
 		MaintenanceActions:      orEmptySlice(a.MaintenanceActions),
