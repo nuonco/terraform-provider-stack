@@ -192,10 +192,8 @@ github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zx
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/nuonco/nuon/sdks/auth v0.0.0-20260828181622-de3841acdd17 h1:tUoxy6uCh77ynEFm+8G5Gco6hi0Yojdeu3MN2HZ0uWM=
 github.com/nuonco/nuon/sdks/auth v0.0.0-20260828181622-de3841acdd17/go.mod h1:vnJlGiFnEkg74wHoq4+4JGkTJ83C+JV9RHDS0ItAbeA=
-github.com/nuonco/nuon/sdks/stack v0.0.0-20260828181622-de3841acdd17 h1:dcgMAcEbpGVO8EZEMoh9z7C4yz5CBnaAIMnNxjtJyic=
-github.com/nuonco/nuon/sdks/stack v0.0.0-20260828181622-de3841acdd17/go.mod h1:VuGzMt1bZrdHOkcmpYlea0+hbl0740vReehVaUa0ytc=
-github.com/nuonco/nuon/sdks/stack v0.0.0-20260901112643-121a245cf805 h1:6DTzdQi7wC2Ur9XK7hMxbAvpiJsL40jQO+dNqnKzL0o=
-github.com/nuonco/nuon/sdks/stack v0.0.0-20260901112643-121a245cf805/go.mod h1:VuGzMt1bZrdHOkcmpYlea0+hbl0740vReehVaUa0ytc=
+github.com/nuonco/nuon/sdks/stack v0.0.0-20260909195858-518648e67829 h1:BuMl6IDVdaT7bBsYvZTUTi9hL68j5ijBwOPsnSbz3Zc=
+github.com/nuonco/nuon/sdks/stack v0.0.0-20260909195858-518648e67829/go.mod h1:VuGzMt1bZrdHOkcmpYlea0+hbl0740vReehVaUa0ytc=
 github.com/oklog/run v1.1.0 h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=
 github.com/oklog/run v1.1.0/go.mod h1:sVPdnTZT1zYwAJeCMu2Th4T21pA3FPOQRfWjQlk7DVU=
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
