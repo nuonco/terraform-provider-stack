@@ -29,10 +29,12 @@ Both surfaces authenticate with a Nuon API token, resolved the same way the
 
 1. the provider's `api_token` argument
 2. `NUON_API_TOKEN`
-3. an ambient OIDC token, exchanged at `/v1/oidc/token` for a short-lived token
+3. an ambient OIDC token from GitHub Actions, HCP Terraform, or the Nuon OIDC
+   environment variables, exchanged at `/v1/oidc/token` for a short-lived token
 
-The third path is the one to prefer in CI: GitHub Actions mints an ID token per
-run (`permissions: id-token: write`), so nothing long-lived is stored. It needs
+The third path is the one to prefer in CI, so nothing long-lived is stored.
+GitHub Actions needs `permissions: id-token: write`. HCP Terraform needs
+`TFC_WORKLOAD_IDENTITY_AUDIENCE` set to the provider's `api_url`. Both need
 `org_id` (or `NUON_ORG_ID`), because the exchange has to name the org whose
 trust policies apply.
 
