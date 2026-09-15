@@ -17,7 +17,8 @@ provider "stack" {
 }
 
 # Alternatively, authenticate with OIDC and store no secret at all. In GitHub
-# Actions, grant `permissions: id-token: write` and set only the org:
+# Actions, grant `permissions: id-token: write`. In HCP Terraform, set
+# TFC_WORKLOAD_IDENTITY_AUDIENCE to the provider's api_url. Then set only the org:
 #
 # provider "stack" {
 #   org_id = var.org_id

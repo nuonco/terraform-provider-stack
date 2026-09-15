@@ -58,7 +58,7 @@ func (p *stackProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp
 			"api_token": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				MarkdownDescription: "Nuon API token, issued by the vendor alongside the install. Falls back to `NUON_API_TOKEN`. If neither is set, the provider looks for an ambient OIDC token (GitHub Actions with `permissions: id-token: write`, `NUON_OIDC_TOKEN`, or `NUON_OIDC_TOKEN_FILE`) and exchanges it for a short-lived token.",
+				MarkdownDescription: "Nuon API token, issued by the vendor alongside the install. Falls back to `NUON_API_TOKEN`. If neither is set, the provider looks for an ambient OIDC token (GitHub Actions with `permissions: id-token: write`, HCP Terraform workload identity, `NUON_OIDC_TOKEN`, or `NUON_OIDC_TOKEN_FILE`) and exchanges it for a short-lived token.",
 			},
 			"org_id": schema.StringAttribute{
 				Optional:            true,
