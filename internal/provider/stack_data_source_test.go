@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -252,5 +253,39 @@ func TestFlattenConfigCustomStacksTemplateURLEmpty(t *testing.T) {
 	flattenConfig(&data, &models.AppInstallerSDKConfig{Cloud: "gcp", Gcp: &models.AppInstallerSDKGCPConfig{}})
 	if data.CustomStacksTemplateURL.ValueString() != "" {
 		t.Errorf("custom_stacks_template_url = %q, want empty", data.CustomStacksTemplateURL.ValueString())
+	}
+}
+
+func TestFlattenConfigGCPPredefinedRoles(t *testing.T) {
+	cfg := &models.AppInstallerSDKConfig{
+		Cloud: "gcp",
+		Gcp: &models.AppInstallerSDKGCPConfig{
+			MaintenancePredefinedRole:  "roles/container.admin",
+			MaintenancePredefinedRoles: []string{"roles/editor", "roles/container.admin"},
+			ProvisionPredefinedRole:    "roles/owner",
+			CustomRoles: map[string]models.AppInstallerSDKGCPRole{
+				"setup":  {PredefinedRole: "roles/container.admin", PredefinedRoles: []string{"roles/editor", "roles/container.admin"}},
+				"legacy": {PredefinedRole: "roles/viewer"},
+			},
+		},
+	}
+
+	var data stackDataSourceModel
+	flattenConfig(&data, cfg)
+
+	if got := data.GCP.MaintenancePredefinedRoles; !reflect.DeepEqual(got, []string{"roles/editor", "roles/container.admin"}) {
+		t.Errorf("maintenance_predefined_roles = %v", got)
+	}
+	if got := data.GCP.ProvisionPredefinedRoles; !reflect.DeepEqual(got, []string{"roles/owner"}) {
+		t.Errorf("provision_predefined_roles should fall back to the singular role, got %v", got)
+	}
+	if got := data.GCP.DeprovisionPredefinedRoles; got == nil || len(got) != 0 {
+		t.Errorf("deprovision_predefined_roles = %v, want empty", got)
+	}
+	if got := data.GCP.CustomRoles["setup"].PredefinedRoles; !reflect.DeepEqual(got, []string{"roles/editor", "roles/container.admin"}) {
+		t.Errorf("custom role predefined_roles = %v", got)
+	}
+	if got := data.GCP.CustomRoles["legacy"].PredefinedRoles; !reflect.DeepEqual(got, []string{"roles/viewer"}) {
+		t.Errorf("legacy custom role predefined_roles = %v", got)
 	}
 }

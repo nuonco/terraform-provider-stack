@@ -194,6 +194,8 @@ github.com/nuonco/nuon/sdks/auth v0.0.0-20260915153155-5c066c410ce1 h1:BEHRnGWoQ
 github.com/nuonco/nuon/sdks/auth v0.0.0-20260915153155-5c066c410ce1/go.mod h1:vnJlGiFnEkg74wHoq4+4JGkTJ83C+JV9RHDS0ItAbeA=
 github.com/nuonco/nuon/sdks/stack v0.0.0-20260909213235-2ba13de81a26 h1:cUEDXAwKK4vbfp+ND2yq1iKwaIZK0Aaegi5BVkJ52tc=
 github.com/nuonco/nuon/sdks/stack v0.0.0-20260909213235-2ba13de81a26/go.mod h1:VuGzMt1bZrdHOkcmpYlea0+hbl0740vReehVaUa0ytc=
+github.com/nuonco/nuon/sdks/stack v0.0.0-20260924024504-08fb0ecbf97d h1:Prbqz/NEt/Um5DNQLQKah3R8/Hcz6gexmFIEtfomKEY=
+github.com/nuonco/nuon/sdks/stack v0.0.0-20260924024504-08fb0ecbf97d/go.mod h1:VuGzMt1bZrdHOkcmpYlea0+hbl0740vReehVaUa0ytc=
 github.com/oklog/run v1.1.0 h1:GEenZ1cK0+q0+wsJew9qUg/DyD8k3JzYsZAi5gYi2mA=
 github.com/oklog/run v1.1.0/go.mod h1:sVPdnTZT1zYwAJeCMu2Th4T21pA3FPOQRfWjQlk7DVU=
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
