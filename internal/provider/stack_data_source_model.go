@@ -53,10 +53,11 @@ type secretTF struct {
 
 // gcpRoleTF mirrors the module's break_glass_roles / custom_roles element.
 type gcpRoleTF struct {
-	Permissions    []string            `tfsdk:"permissions"`
-	Policies       map[string][]string `tfsdk:"policies"`
-	PredefinedRole string              `tfsdk:"predefined_role"`
-	Enabled        bool                `tfsdk:"enabled"`
+	Permissions     []string            `tfsdk:"permissions"`
+	Policies        map[string][]string `tfsdk:"policies"`
+	PredefinedRole  string              `tfsdk:"predefined_role"`
+	PredefinedRoles []string            `tfsdk:"predefined_roles"`
+	Enabled         bool                `tfsdk:"enabled"`
 }
 
 // gcpTF carries the GCP-specific install-stack config.
@@ -79,6 +80,10 @@ type gcpTF struct {
 	MaintenancePredefinedRole string   `tfsdk:"maintenance_predefined_role"`
 	DeprovisionPermissions    []string `tfsdk:"deprovision_permissions"`
 	DeprovisionPredefinedRole string   `tfsdk:"deprovision_predefined_role"`
+
+	ProvisionPredefinedRoles   []string `tfsdk:"provision_predefined_roles"`
+	MaintenancePredefinedRoles []string `tfsdk:"maintenance_predefined_roles"`
+	DeprovisionPredefinedRoles []string `tfsdk:"deprovision_predefined_roles"`
 
 	ProvisionPolicies   map[string][]string `tfsdk:"provision_policies"`
 	MaintenancePolicies map[string][]string `tfsdk:"maintenance_policies"`
@@ -255,22 +260,25 @@ func flattenAWSRoles(in map[string]models.AppInstallerSDKRoleConfig) map[string]
 
 func flattenGCP(g *models.AppInstallerSDKGCPConfig) *gcpTF {
 	return &gcpTF{
-		ProjectID:                 g.ProjectID,
-		Region:                    g.Region,
-		RunnerInitScriptURL:       g.RunnerInitScriptURL,
-		RunnerAPIToken:            g.RunnerAPIToken,
-		RunnerMachineType:         g.RunnerMachineType,
-		ProvisionPermissions:      orEmptySlice(g.ProvisionPermissions),
-		ProvisionPredefinedRole:   g.ProvisionPredefinedRole,
-		MaintenancePermissions:    orEmptySlice(g.MaintenancePermissions),
-		MaintenancePredefinedRole: g.MaintenancePredefinedRole,
-		DeprovisionPermissions:    orEmptySlice(g.DeprovisionPermissions),
-		DeprovisionPredefinedRole: g.DeprovisionPredefinedRole,
-		ProvisionPolicies:         orEmptyMapList(g.ProvisionPolicies),
-		MaintenancePolicies:       orEmptyMapList(g.MaintenancePolicies),
-		DeprovisionPolicies:       orEmptyMapList(g.DeprovisionPolicies),
-		BreakGlassRoles:           flattenGCPRoles(g.BreakGlassRoles),
-		CustomRoles:               flattenGCPRoles(g.CustomRoles),
+		ProjectID:                  g.ProjectID,
+		Region:                     g.Region,
+		RunnerInitScriptURL:        g.RunnerInitScriptURL,
+		RunnerAPIToken:             g.RunnerAPIToken,
+		RunnerMachineType:          g.RunnerMachineType,
+		ProvisionPermissions:       orEmptySlice(g.ProvisionPermissions),
+		ProvisionPredefinedRole:    g.ProvisionPredefinedRole,
+		MaintenancePermissions:     orEmptySlice(g.MaintenancePermissions),
+		MaintenancePredefinedRole:  g.MaintenancePredefinedRole,
+		DeprovisionPermissions:     orEmptySlice(g.DeprovisionPermissions),
+		DeprovisionPredefinedRole:  g.DeprovisionPredefinedRole,
+		ProvisionPredefinedRoles:   predefinedRoles(g.ProvisionPredefinedRoles, g.ProvisionPredefinedRole),
+		MaintenancePredefinedRoles: predefinedRoles(g.MaintenancePredefinedRoles, g.MaintenancePredefinedRole),
+		DeprovisionPredefinedRoles: predefinedRoles(g.DeprovisionPredefinedRoles, g.DeprovisionPredefinedRole),
+		ProvisionPolicies:          orEmptyMapList(g.ProvisionPolicies),
+		MaintenancePolicies:        orEmptyMapList(g.MaintenancePolicies),
+		DeprovisionPolicies:        orEmptyMapList(g.DeprovisionPolicies),
+		BreakGlassRoles:            flattenGCPRoles(g.BreakGlassRoles),
+		CustomRoles:                flattenGCPRoles(g.CustomRoles),
 	}
 }
 
@@ -278,13 +286,26 @@ func flattenGCPRoles(in map[string]models.AppInstallerSDKGCPRole) map[string]gcp
 	out := make(map[string]gcpRoleTF, len(in))
 	for name, r := range in {
 		out[name] = gcpRoleTF{
-			Permissions:    orEmptySlice(r.Permissions),
-			Policies:       orEmptyMapList(r.Policies),
-			PredefinedRole: r.PredefinedRole,
-			Enabled:        r.Enabled,
+			Permissions:     orEmptySlice(r.Permissions),
+			Policies:        orEmptyMapList(r.Policies),
+			PredefinedRole:  r.PredefinedRole,
+			PredefinedRoles: predefinedRoles(r.PredefinedRoles, r.PredefinedRole),
+			Enabled:         r.Enabled,
 		}
 	}
 	return out
+}
+
+// predefinedRoles falls back to the singular role for control planes that
+// predate the list, so modules can read the list alone.
+func predefinedRoles(roles []string, legacy string) []string {
+	if len(roles) > 0 {
+		return roles
+	}
+	if legacy != "" {
+		return []string{legacy}
+	}
+	return []string{}
 }
 
 func flattenAzure(a *models.AppInstallerSDKAzureConfig) *azureTF {

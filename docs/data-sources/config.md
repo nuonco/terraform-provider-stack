@@ -50,6 +50,7 @@ output "install_id" {
 - `runner_id` (String) Runner ID for this install.
 - `secrets` (Attributes Map, Sensitive) Customer-supplied secrets, keyed by name. (see [below for nested schema](#nestedatt--secrets))
 - `sensitive_input_names` (List of String) Names of the entries in `install_inputs` the app declares sensitive.
+- `stack_version_id` (String) ID of the install stack version this config was rendered for. Pass it to `stack_phone_home.stack_version_id` so a newly generated version is reported: the authenticated phone-home URL is the same for every version, so nothing else in the resource changes when one is generated.
 
 <a id="nestedatt--aws"></a>
 ### Nested Schema for `aws`
@@ -71,6 +72,8 @@ Read-Only:
 - `provision_permissions` (List of String) Provision role inline-policy IAM actions.
 - `region` (String) AWS region the stack is provisioned into.
 - `runner_machine_type` (String) EC2 instance type for the runner host.
+- `runner_nested_template_url` (String) CloudFormation template the app declares for the runner. Empty means use the module's runner.
+- `vpc_nested_template_url` (String) CloudFormation template the app declares for the install VPC. Set when the vendor customised it, in which case the module deploys it instead of building its own VPC so resources their components read back by tag exist on both install paths. Empty means use the module's VPC.
 
 <a id="nestedatt--aws--break_glass_roles"></a>
 ### Nested Schema for `aws.break_glass_roles`
@@ -111,9 +114,11 @@ Read-Only:
 - `maintenance_built_in_roles` (List of String) Maintenance identity built-in role GUIDs.
 - `provision_actions` (List of String) Provision identity actions, granted via a custom role definition.
 - `provision_built_in_roles` (List of String) Provision identity built-in role GUIDs.
+- `runner_nested_template_url` (String) ARM template the app declares for the runner. Empty means use the module's runner.
 - `runner_vm_size` (String) VM size for the runner scale set.
 - `subscription_id` (String) Subscription the install belongs to. The module compares this against the azurerm provider's own subscription.
 - `subscription_tenant_id` (String) Tenant the subscription belongs to.
+- `vpc_nested_template_url` (String) ARM template the app declares for the install virtual network. Set when the vendor customised it, in which case the module deploys it instead of building its own network so resources their components depend on exist on both install paths. Empty means use the module's network.
 
 <a id="nestedatt--azure--break_glass_roles"></a>
 ### Nested Schema for `azure.break_glass_roles`
@@ -159,13 +164,16 @@ Read-Only:
 - `deprovision_permissions` (List of String) Deprovision service-account permissions.
 - `deprovision_policies` (Map of List of String) Per-policy deprovision custom roles (policy name → permissions).
 - `deprovision_predefined_role` (String) Deprovision predefined role, if any.
+- `deprovision_predefined_roles` (List of String) Every deprovision predefined role. `deprovision_predefined_role` is the last of these.
 - `maintenance_permissions` (List of String) Maintenance service-account permissions.
 - `maintenance_policies` (Map of List of String) Per-policy maintenance custom roles (policy name → permissions).
 - `maintenance_predefined_role` (String) Maintenance predefined role, if any.
+- `maintenance_predefined_roles` (List of String) Every maintenance predefined role. `maintenance_predefined_role` is the last of these.
 - `project_id` (String) GCP project the stack is provisioned into. Empty until the install has a recorded project, so the module's `project_id` variable can supply it on a first apply.
 - `provision_permissions` (List of String) Provision service-account permissions.
 - `provision_policies` (Map of List of String) Per-policy provision custom roles (policy name → permissions).
 - `provision_predefined_role` (String) Provision predefined role, if any.
+- `provision_predefined_roles` (List of String) Every provision predefined role. `provision_predefined_role` is the last of these.
 - `region` (String) GCP region the stack is provisioned into. Empty until the install has a recorded region, so the module's `region` variable can supply it on a first apply.
 - `runner_api_token` (String, Sensitive) Runner API token.
 - `runner_init_script_url` (String) Runner bootstrap script URL.
@@ -179,7 +187,8 @@ Read-Only:
 - `enabled` (Boolean) Whether the role should be created.
 - `permissions` (List of String) IAM permissions bound to the role's service account.
 - `policies` (Map of List of String) Per-policy custom roles (policy name → permissions): one custom role per policy.
-- `predefined_role` (String) Predefined role bound to the service account, if any.
+- `predefined_role` (String) Last predefined role bound to the service account, if any. Kept for modules that predate `predefined_roles`.
+- `predefined_roles` (List of String) Every predefined role bound to the service account.
 
 
 <a id="nestedatt--gcp--custom_roles"></a>
@@ -190,7 +199,8 @@ Read-Only:
 - `enabled` (Boolean) Whether the role should be created.
 - `permissions` (List of String) IAM permissions bound to the role's service account.
 - `policies` (Map of List of String) Per-policy custom roles (policy name → permissions): one custom role per policy.
-- `predefined_role` (String) Predefined role bound to the service account, if any.
+- `predefined_role` (String) Last predefined role bound to the service account, if any. Kept for modules that predate `predefined_roles`.
+- `predefined_roles` (List of String) Every predefined role bound to the service account.
 
 
 
