@@ -175,7 +175,7 @@ Read-Only:
 - `provision_predefined_role` (String) Provision predefined role, if any.
 - `provision_predefined_roles` (List of String) Every provision predefined role. `provision_predefined_role` is the last of these.
 - `region` (String) GCP region the stack is provisioned into. Empty until the install has a recorded region, so the module's `region` variable can supply it on a first apply.
-- `runner_api_token` (String, Sensitive) Runner API token.
+- `runner_api_token` (String, Sensitive) Unused. GCP runners authenticate with their instance identity, so this is always empty. Kept so existing configurations that read it still plan.
 - `runner_init_script_url` (String) Runner bootstrap script URL.
 - `runner_machine_type` (String) GCE machine type for the runner instance.
 

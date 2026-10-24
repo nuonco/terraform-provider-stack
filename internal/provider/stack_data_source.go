@@ -147,7 +147,7 @@ func (d *stackDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 					"region":     schema.StringAttribute{Computed: true, MarkdownDescription: "GCP region the stack is provisioned into. Empty until the install has a recorded region, so the module's `region` variable can supply it on a first apply."},
 
 					"runner_init_script_url": schema.StringAttribute{Computed: true, MarkdownDescription: "Runner bootstrap script URL."},
-					"runner_api_token":       schema.StringAttribute{Computed: true, Sensitive: true, MarkdownDescription: "Runner API token."},
+					"runner_api_token":       schema.StringAttribute{Computed: true, Sensitive: true, MarkdownDescription: "Unused. GCP runners authenticate with their instance identity, so this is always empty. Kept so existing configurations that read it still plan."},
 					"runner_machine_type":    schema.StringAttribute{Computed: true, MarkdownDescription: "GCE machine type for the runner instance."},
 
 					"provision_permissions":       schema.ListAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Provision service-account permissions."},
